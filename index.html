@@ -80,6 +80,20 @@
     .panel { display: none; }
     .panel.active { display: block; }
 
+    /* ───── Sub-tabs (inside Stats & History) ───── */
+    .sub-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+    .sub-tab {
+      padding: 8px 18px; border: none; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--muted);
+      background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      transition: all .2s;
+    }
+    .sub-tab:hover { color: var(--text); }
+    .sub-tab-active { background: var(--primary) !important; color: #fff !important; box-shadow: 0 2px 8px rgba(99,102,241,.3); }
+    body.sat .sub-tab-active { background: linear-gradient(135deg,#fb923c,#ec4899) !important; }
+    .sub-panel { display: none; }
+    .sub-panel.active { display: block; }
+
     /* ───── Card ───── */
     .card {
       background: var(--card); border-radius: var(--radius);
@@ -377,16 +391,24 @@
 
   <!-- Tab Navigation -->
   <div class="tabs">
-    <button class="tab tab-active" id="tab-dexa" onclick="switchTab('dexa')">📊 DEXA History</button>
-    <button class="tab" id="tab-timeline" onclick="switchTab('timeline')">📈 4-Year Timeline</button>
-    <button class="tab" id="tab-weight" onclick="switchTab('weight')">⚖️ Daily Weight</button>
-    <button class="tab" id="tab-nutrition" onclick="switchTab('nutrition')">🥗 Nutrition</button>
+    <button class="tab tab-active" id="tab-weight" onclick="switchTab('weight')">⚖️ Daily Weight</button>
+    <button class="tab" id="tab-more" onclick="switchTab('more')">📊 Stats &amp; History</button>
   </div>
 
   <!-- ════════════════════════════════════════════════
-       PANEL: DEXA History
+       PANEL: Stats & History (wrapper)
   ════════════════════════════════════════════════ -->
-  <div class="panel active" id="panel-dexa">
+  <div class="panel" id="panel-more">
+
+    <!-- Sub-tab navigation -->
+    <div class="sub-tabs">
+      <button class="sub-tab sub-tab-active" id="subtab-dexa" onclick="switchSubTab('dexa')">📊 DEXA History</button>
+      <button class="sub-tab" id="subtab-timeline" onclick="switchSubTab('timeline')">📈 4-Year Timeline</button>
+      <button class="sub-tab" id="subtab-nutrition" onclick="switchSubTab('nutrition')">🥗 Nutrition</button>
+    </div>
+
+  <!-- ─── Sub-panel: DEXA History ─── -->
+  <div class="sub-panel active" id="panel-dexa">
 
     <!-- Top KPI cards -->
     <div class="stats">
@@ -560,10 +582,8 @@
 
   </div><!-- /panel-dexa -->
 
-  <!-- ════════════════════════════════════════════════
-       PANEL: 4-Year Timeline
-  ════════════════════════════════════════════════ -->
-  <div class="panel" id="panel-timeline">
+  <!-- ─── Sub-panel: 4-Year Timeline ─── -->
+  <div class="sub-panel" id="panel-timeline">
 
     <!-- Top KPI cards -->
     <div class="stats">
@@ -652,10 +672,10 @@
 
   </div><!-- /panel-timeline -->
 
-  <!-- ════════════════════════════════════════════════
-       PANEL: Daily Weight
-  ════════════════════════════════════════════════ -->
-  <div class="panel" id="panel-weight">
+  </div><!-- /panel-more -->
+
+  <!-- ════ PANEL: Daily Weight ════ -->
+  <div class="panel active" id="panel-weight">
 
     <!-- Sync status -->
     <div class="sync-bar" id="sync-bar" style="display:none">
@@ -696,7 +716,7 @@
     </div>
 
     <!-- Two-col -->
-    <div class="two-col">
+    <div class="two-col" style="align-items:start">
       <div class="card">
         <h2 id="log-heading">Log Today</h2>
         <div id="log-form">
@@ -716,7 +736,7 @@
 
       <div class="card">
         <h2>Weight Trend</h2>
-        <canvas id="chart-weight" height="200"></canvas>
+        <div class="chart-wrap"><canvas id="chart-weight" height="200"></canvas></div>
       </div>
     </div>
 
@@ -745,7 +765,7 @@
   </div><!-- /panel-weight -->
 
   <!-- ═══════════════════════ NUTRITION TAB ════════════════════════════════ -->
-  <div class="panel" id="panel-nutrition">
+  <div class="sub-panel" id="panel-nutrition">
 
     <!-- Stat cards -->
     <div class="three-col" style="margin-bottom:0">
@@ -1058,12 +1078,26 @@ const esc = s => { const d=document.createElement('div'); d.textContent=s; retur
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('tab-active');
   document.getElementById('panel-'+tab).classList.add('active');
   if (tab === 'weight') { setTimeout(()=>{ const d=load(); drawWeightChart(d); }, 50); }
-  if (tab === 'dexa') { setTimeout(drawDexaCharts, 50); }
-  if (tab === 'timeline') { setTimeout(drawTimeline, 50); }
-  if (tab === 'nutrition') { setTimeout(drawNutrition, 50); }
+  if (tab === 'more') {
+    // Restore last active sub-tab, defaulting to dexa
+    const last = window._activeSubTab || 'dexa';
+    switchSubTab(last);
+  }
+}
+
+function switchSubTab(sub) {
+  window._activeSubTab = sub;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('sub-tab-active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('subtab-'+sub).classList.add('sub-tab-active');
+  document.getElementById('panel-'+sub).classList.add('active');
+  if (sub === 'dexa') { setTimeout(drawDexaCharts, 50); }
+  if (sub === 'timeline') { setTimeout(drawTimeline, 50); }
+  if (sub === 'nutrition') { setTimeout(drawNutrition, 50); }
 }
 
 // ─── DEXA Charts ─────────────────────────────────────────────────────────────
@@ -1590,7 +1624,8 @@ function drawWeightChart(data) {
   const lineColor = saturday ? '#ec4899' : '#8b5cf6';
 
   const dpr = window.devicePixelRatio || 1;
-  const W = canvas.clientWidth, H = canvas.clientHeight || 200;
+  const W = canvas.clientWidth || canvas.offsetWidth || canvas.parentElement.clientWidth || 400;
+  const H = canvas.clientHeight || 200;
   canvas.width = W*dpr; canvas.height = H*dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
@@ -1638,9 +1673,9 @@ function drawWeightChart(data) {
 
   // Dots
   entries.forEach(e=>{
-    const r=isSat(e.date)?5.5:4;
+    const r=4;
     ctx.beginPath(); ctx.arc(xOf(e.date),yOf(e.weight),r,0,Math.PI*2);
-    ctx.fillStyle=isSat(e.date)?'#f97316':blue; ctx.fill();
+    ctx.fillStyle=blue; ctx.fill();
     ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
   });
 
@@ -1889,8 +1924,8 @@ function drawNutrition() {
 
 
 
-  // Draw DEXA charts on load since it's the default tab
-  setTimeout(drawDexaCharts, 100);
+  // Draw weight chart on load since it's now the default tab
+  setTimeout(()=>{ const d=load(); drawWeightChart(d); }, 100);
 
   // Try Sheets sync
   const sheetsUrl = getSheetsUrl();
