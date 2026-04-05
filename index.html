@@ -481,6 +481,22 @@
       background: #f59e0b; color: #fff;
     }
     .btn-skip-on:hover { background: #d97706; }
+    /* ── Food sync button ── */
+    .food-sync-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: var(--radius); background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 14px;
+    }
+    .food-sync-bar .sync-label { flex: 1; font-size: 0.84rem; color: var(--muted); }
+    .food-sync-bar .sync-label.dirty { color: var(--orange); font-weight: 600; }
+    .btn-sync-food {
+      padding: 8px 18px; border-radius: 10px; font-size: 0.84rem; font-weight: 700;
+      cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-sync-food.clean { background: var(--border); color: var(--muted); }
+    .btn-sync-food.dirty { background: var(--primary); color: #fff; }
+    .btn-sync-food.dirty:hover { background: var(--primary-2); }
+    .btn-sync-food.syncing { background: var(--yellow); color: #fff; cursor: wait; }
     .food-skipped-overlay {
       text-align: center; padding: 40px 20px; color: #92400e;
       font-size: 0.95rem; line-height: 1.6;
@@ -638,6 +654,12 @@
         <div class="food-rem-chip"><div class="rc-val" id="val-carbs" style="color:#10b981">0g</div><div class="rc-lbl">carbs</div><div class="rc-sub">total</div></div>
         <div class="food-rem-chip"><div class="rc-val" id="val-fat" style="color:#f97316">0g</div><div class="rc-lbl">fat</div><div class="rc-sub">total</div></div>
       </div>
+    </div>
+
+    <!-- Sync to Sheets button -->
+    <div class="food-sync-bar" id="food-sync-bar">
+      <span class="sync-label" id="food-sync-label">In sync with Google Sheets</span>
+      <button class="btn-sync-food clean" id="food-sync-btn" onclick="pushFoodToSheets()">Sync to Sheets</button>
     </div>
 
     <!-- Log food form -->
@@ -1512,31 +1534,18 @@ async function syncOnVisibility() {
 }
 
 // ─── Ensure today's meal plan exists (runs at boot, regardless of tab) ───────
-// Two separate flags:
-//  1. foodInitDates  — "plan entries exist in localStorage" (set once per day)
-//  2. planSyncedDate — "plan entries have been pushed to Sheets" (set once per day)
-// This avoids duplicates (Apps Script appends, not upserts) while still
-// guaranteeing the plan reaches Sheets at least once each day.
-const PLAN_SYNCED_KEY = 'planSyncedDate_v1';
-function getPlanSyncedDate() { try { return localStorage.getItem(PLAN_SYNCED_KEY) || ''; } catch(e) { return ''; } }
-function setPlanSyncedDate(d) { try { localStorage.setItem(PLAN_SYNCED_KEY, d); } catch(e) {} }
+// foodInitDates — "plan entries exist in localStorage" (set once per day)
+// Sheets push is now manual via the "Sync to Sheets" button.
 
 function ensureTodayMealPlan() {
   const td = today();
-  let planEntries;
   if (!getFoodInitDates().has(td)) {
-    // First time seeing this date — create plan entries locally
+    // First time seeing this date — create plan entries locally only
     markFoodDateInitialized(td);
-    planEntries = createPlanEntries(td);
+    const planEntries = createPlanEntries(td);
     const existing = getFoodEntries();
     saveFoodEntriesDB([...existing, ...planEntries]);
-  }
-  // Push to Sheets ONCE per day (separate flag so a failed first attempt can retry
-  // on the next page load, but a successful push won't duplicate)
-  if (getSheetsUrl() && getPlanSyncedDate() !== td) {
-    setPlanSyncedDate(td); // set eagerly — if the push fails, user can force-push from settings
-    const todayPlan = planEntries || getFoodEntries().filter(e => e.date === td && e.plan);
-    if (todayPlan.length) syncFoodEntriesToSheets(todayPlan);
+    markFoodDirty(); // flag that local changes need syncing
   }
 }
 
@@ -1610,6 +1619,8 @@ function ensureTodayMealPlan() {
     // After Sheets pull, update backup status (meal plan was already ensured above)
     updateBackupStatus();
   }
+  // Initialize food sync button state
+  updateFoodSyncUI();
 })();
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -1939,14 +1950,14 @@ function logFood() {
   entries.push(entry);
   saveFoodEntriesDB(entries);
   renderFood();
-  syncFoodEntriesToSheets([entry]);
+  markFoodDirty();
   showToast(`✓ Logged ${food.name}`);
 }
 
 function deleteFoodEntry(id) {
   saveFoodEntriesDB(getFoodEntries().filter(e => e.id !== id));
   renderFood();
-  deleteFoodEntryFromSheets(id);
+  markFoodDirty();
 }
 
 function editFoodEntry(id) {
@@ -1988,19 +1999,19 @@ function saveFoodEdit(id) {
   entries[idx] = {...old, qty:newQty, calories:cal, protein:p, carbs:c, fat:f};
   saveFoodEntriesDB(entries);
   renderFood();
-  syncFoodEntriesToSheets([entries[idx]]);
+  markFoodDirty();
   showToast('✓ Updated');
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
 function renderFood() {
-  // Auto-initialize day from meal plan the FIRST time this date is viewed
+  // Auto-initialize day from meal plan the FIRST time this date is viewed (local only)
   if (!getFoodInitDates().has(foodCurrentDate)) {
     markFoodDateInitialized(foodCurrentDate);
     const planEntries = createPlanEntries(foodCurrentDate);
     const existing = getFoodEntries();
     saveFoodEntriesDB([...existing, ...planEntries]);
-    if (getSheetsUrl()) syncFoodEntriesToSheets(planEntries);
+    markFoodDirty();
   }
 
   const allEntries = getFoodEntries();
@@ -2198,7 +2209,54 @@ async function saveCustomFood() {
 }
 
 // ── Google Sheets — Calorie Counting sync ────────────────────────────────────
-// Each food entry gets its own row in the "Calorie Counting" sheet.
+// Food sync is now MANUAL — user presses the "Sync to Sheets" button.
+
+let foodDirty = false; // true when local changes haven't been pushed
+
+function markFoodDirty() {
+  foodDirty = true;
+  updateFoodSyncUI();
+}
+
+function updateFoodSyncUI() {
+  const bar   = document.getElementById('food-sync-bar');
+  const label = document.getElementById('food-sync-label');
+  const btn   = document.getElementById('food-sync-btn');
+  if (!bar || !label || !btn) return;
+  // Hide the bar entirely when no Sheets URL is configured
+  bar.style.display = getSheetsUrl() ? 'flex' : 'none';
+  if (foodDirty) {
+    label.textContent = 'You have unsaved changes';
+    label.className   = 'sync-label dirty';
+    btn.textContent   = 'Sync to Sheets';
+    btn.className     = 'btn-sync-food dirty';
+  } else {
+    label.textContent = 'In sync with Google Sheets';
+    label.className   = 'sync-label';
+    btn.textContent   = 'Sync to Sheets';
+    btn.className     = 'btn-sync-food clean';
+  }
+}
+
+async function pushFoodToSheets() {
+  const url = getSheetsUrl();
+  if (!url) { showToast('No Sheets URL configured'); return; }
+  const btn = document.getElementById('food-sync-btn');
+  const label = document.getElementById('food-sync-label');
+  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync-food syncing'; }
+  if (label) { label.textContent = 'Pushing to Google Sheets…'; label.className = 'sync-label'; }
+  try {
+    const entries = getFoodEntries();
+    await syncFoodEntriesToSheets(entries);
+    foodDirty = false;
+    updateFoodSyncUI();
+    showToast('✓ Food log synced to Google Sheets');
+  } catch(e) {
+    if (label) { label.textContent = 'Sync failed — try again'; label.className = 'sync-label dirty'; }
+    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync-food dirty'; }
+    showToast('Sync failed');
+  }
+}
 
 async function syncFoodEntriesToSheets(entries) {
   const url = getSheetsUrl();
