@@ -619,16 +619,6 @@
       <button class="food-nav-btn" onclick="foodNavDay(1)">›</button>
     </div>
 
-    <!-- Skip day bar -->
-    <div class="skip-day-bar" id="skip-day-bar">
-      <span class="skip-icon" id="skip-icon">📋</span>
-      <span class="skip-text" id="skip-text">
-        <strong>Tracking this day</strong>
-        Not logging? Skip so it won't count as zero in your trends.
-      </span>
-      <button class="btn-skip btn-skip-off" id="skip-btn" onclick="toggleSkipDay()">Skip day</button>
-    </div>
-
     <!-- Daily macro summary -->
     <div class="card food-macro-summary">
       <div class="food-cal-row">
@@ -693,6 +683,16 @@
 
     <!-- Entries by meal for selected day -->
     <div id="food-entries"></div>
+
+    <!-- Skip day bar -->
+    <div class="skip-day-bar" id="skip-day-bar">
+      <span class="skip-icon" id="skip-icon">📋</span>
+      <span class="skip-text" id="skip-text">
+        <strong>Tracking this day</strong>
+        Not logging? Skip so it won't count as zero in your trends.
+      </span>
+      <button class="btn-skip btn-skip-off" id="skip-btn" onclick="toggleSkipDay()">Skip day</button>
+    </div>
 
   </div><!-- /panel-food -->
 
@@ -1681,33 +1681,33 @@ function toggleSkipDay() {
 // Exact daily quantities from your Daily Meal Plan spreadsheet.
 // These are pre-populated on every new day automatically.
 let MEAL_PLAN_TEMPLATE = [
-  // Breakfast
-  { food_id:'eggs',           food_name:'Eggs',                  meal:'Breakfast',     qty:3,      unit:'egg',    calories:210,   protein:19.5,  carbs:0,      fat:15.0  },
-  { food_id:'broccoli-b',     food_name:'Broccoli',              meal:'Breakfast',     qty:150,    unit:'g',      calories:37.5,  protein:3.75,  carbs:7.5,    fat:0     },
-  { food_id:'salsa',          food_name:'Salsa',                 meal:'Breakfast',     qty:4,      unit:'tbsp',   calories:20,    protein:0,     carbs:4,      fat:0     },
-  { food_id:'red-lentils',    food_name:'Red Lentils',           meal:'Breakfast',     qty:0.375,  unit:'cups',   calories:270,   protein:18,    carbs:48,     fat:1.5   },
-  { food_id:'cottage-cheese', food_name:'Cottage Cheese',        meal:'Breakfast',     qty:150,    unit:'g',      calories:122,   protein:19.1,  carbs:5.4,    fat:2.7   },
-  { food_id:'cocoa-powder',   food_name:'Cocoa Powder',          meal:'Breakfast',     qty:1,      unit:'scoop',  calories:15,    protein:1,     carbs:3,      fat:0.5   },
-  { food_id:'fish-pills',     food_name:'Fish Pills',            meal:'Breakfast',     qty:1,      unit:'pill',   calories:15,    protein:0,     carbs:0,      fat:1.5   },
+  // Breakfast  (food_ids must match Sheets format: nameSlug-sectionSlug)
+  { food_id:'eggs-b',            food_name:'Eggs',                  meal:'Breakfast',     qty:3,      unit:'egg',    calories:210,   protein:19.5,  carbs:0,      fat:15.0  },
+  { food_id:'broccoli-b',        food_name:'Broccoli',              meal:'Breakfast',     qty:150,    unit:'g',      calories:37.5,  protein:3.75,  carbs:7.5,    fat:0     },
+  { food_id:'salsa-b',           food_name:'Salsa',                 meal:'Breakfast',     qty:4,      unit:'tbsp',   calories:20,    protein:0,     carbs:4,      fat:0     },
+  { food_id:'red-lentils-b',     food_name:'Red Lentils',           meal:'Breakfast',     qty:0.375,  unit:'cups',   calories:270,   protein:18,    carbs:48,     fat:1.5   },
+  { food_id:'cottage-cheese-b',  food_name:'Cottage Cheese',        meal:'Breakfast',     qty:150,    unit:'g',      calories:122,   protein:19.1,  carbs:5.4,    fat:2.7   },
+  { food_id:'cocoa-powder-b',    food_name:'Cocoa Powder',          meal:'Breakfast',     qty:1,      unit:'scoop',  calories:15,    protein:1,     carbs:3,      fat:0.5   },
+  { food_id:'fish-pills-b',      food_name:'Fish Pills',            meal:'Breakfast',     qty:1,      unit:'pill',   calories:15,    protein:0,     carbs:0,      fat:1.5   },
   // Lunch
-  { food_id:'chicken',        food_name:'Chicken Breast & Ribs', meal:'Lunch',         qty:224,    unit:'g',      calories:260,   protein:48,    carbs:0,      fat:6     },
-  { food_id:'peas',           food_name:'Peas',                  meal:'Lunch',         qty:112.5,  unit:'g',      calories:87.5,  protein:6.25,  carbs:16.25,  fat:0     },
-  { food_id:'pinto-beans',    food_name:'Pinto Beans',           meal:'Lunch',         qty:0.5,    unit:'cups',   calories:160,   protein:14,    carbs:42,     fat:2     },
-  { food_id:'avocado',        food_name:'Avocado',               meal:'Lunch',         qty:90,     unit:'g',      calories:144,   protein:1.8,   carbs:7.2,    fat:14.4  },
+  { food_id:'chicken-breast---ribs-l', food_name:'Chicken Breast & Ribs', meal:'Lunch',   qty:224,    unit:'g',      calories:260,   protein:48,    carbs:0,      fat:6     },
+  { food_id:'peas-l',            food_name:'Peas',                  meal:'Lunch',         qty:112.5,  unit:'g',      calories:87.5,  protein:6.25,  carbs:16.25,  fat:0     },
+  { food_id:'pinto-beans-l',     food_name:'Pinto Beans',           meal:'Lunch',         qty:0.5,    unit:'cups',   calories:160,   protein:14,    carbs:42,     fat:2     },
+  { food_id:'avocado-l',         food_name:'Avocado',               meal:'Lunch',         qty:90,     unit:'g',      calories:144,   protein:1.8,   carbs:7.2,    fat:14.4  },
   // Dinner
-  { food_id:'broccoli-d',     food_name:'Broccoli',              meal:'Dinner',        qty:212.5,  unit:'g',      calories:50,    protein:5,     carbs:10,     fat:0     },
-  { food_id:'black-beans',    food_name:'Black Beans',           meal:'Dinner',        qty:0.5,    unit:'cups',   calories:160,   protein:16,    carbs:44,     fat:2     },
-  { food_id:'beef-96',        food_name:'Beef 96/4',             meal:'Dinner',        qty:224,    unit:'g',      calories:280,   protein:48,    carbs:0,      fat:9     },
-  { food_id:'olive-oil',      food_name:'Olive Oil',             meal:'Dinner',        qty:1,      unit:'tbsp',   calories:120,   protein:0,     carbs:0,      fat:14    },
+  { food_id:'broccoli-d',        food_name:'Broccoli',              meal:'Dinner',        qty:212.5,  unit:'g',      calories:50,    protein:5,     carbs:10,     fat:0     },
+  { food_id:'black-beans-d',     food_name:'Black Beans',           meal:'Dinner',        qty:0.5,    unit:'cups',   calories:160,   protein:16,    carbs:44,     fat:2     },
+  { food_id:'beef-96-4-d',       food_name:'Beef 96/4',             meal:'Dinner',        qty:224,    unit:'g',      calories:280,   protein:48,    carbs:0,      fat:9     },
+  { food_id:'olive-oil-d',       food_name:'Olive Oil',             meal:'Dinner',        qty:1,      unit:'tbsp',   calories:120,   protein:0,     carbs:0,      fat:14    },
   // Evening Snack
-  { food_id:'spinach',        food_name:'Spinach',               meal:'Evening Snack', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
-  { food_id:'carrots',        food_name:'Carrots',               meal:'Evening Snack', qty:115,    unit:'g',      calories:40.5,  protein:0,     carbs:9.45,   fat:0     },
-  { food_id:'sweet-potato',   food_name:'Sweet Potato',          meal:'Evening Snack', qty:195,    unit:'g',      calories:184.6, protein:4.16,  carbs:42.51,  fat:0.26  },
-  { food_id:'sardines',       food_name:'Sardines',              meal:'Evening Snack', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
-  { food_id:'sauerkraut',     food_name:'Sauerkraut',            meal:'Evening Snack', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
-  { food_id:'mustard',        food_name:'Mustard',               meal:'Evening Snack', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
+  { food_id:'spinach-es',        food_name:'Spinach',               meal:'Evening Snack', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
+  { food_id:'carrots-es',        food_name:'Carrots',               meal:'Evening Snack', qty:115,    unit:'g',      calories:40.5,  protein:0,     carbs:9.45,   fat:0     },
+  { food_id:'sweet-potato-es',   food_name:'Sweet Potato',          meal:'Evening Snack', qty:195,    unit:'g',      calories:184.6, protein:4.16,  carbs:42.51,  fat:0.26  },
+  { food_id:'sardines-es',       food_name:'Sardines',              meal:'Evening Snack', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
+  { food_id:'sauerkraut-es',     food_name:'Sauerkraut',            meal:'Evening Snack', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
+  { food_id:'mustard-es',        food_name:'Mustard',               meal:'Evening Snack', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
   // Snack
-  { food_id:'trident',        food_name:'Trident White',         meal:'Snack',         qty:8,      unit:'pieces', calories:20,    protein:0,     carbs:8,      fat:0     },
+  { food_id:'trident-white-sn',  food_name:'Trident White',         meal:'Snack',         qty:8,      unit:'pieces', calories:20,    protein:0,     carbs:8,      fat:0     },
 ];
 
 const FOOD_INIT_DATES_KEY = 'foodInitDates_v1';
@@ -1755,16 +1755,23 @@ function saveCustomFoodsDB(foods) { localStorage.setItem(CUSTOM_FOODS_KEY, JSON.
 function getFoodEntries() {
   try {
     const entries = JSON.parse(localStorage.getItem(FOOD_ENTRIES_KEY)) || [];
-    // Normalize any malformed dates (e.g. full Date.toString() from Sheets sync)
     let dirty = false;
+    // Normalize any malformed dates (e.g. full Date.toString() from Sheets sync)
     entries.forEach(e => {
       if (e.date && !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) {
         e.date = normalizeDate(e.date);
         dirty = true;
       }
     });
-    if (dirty) saveFoodEntriesDB(entries); // auto-repair stored data
-    return entries;
+    // Auto-dedup: remove entries with same date+meal+food (normalized name)
+    const seen = new Set();
+    const deduped = [];
+    entries.forEach(e => {
+      const key = e.date + '|' + e.meal + '|' + normFoodName(e.food_name);
+      if (!seen.has(key)) { seen.add(key); deduped.push(e); } else { dirty = true; }
+    });
+    if (dirty) saveFoodEntriesDB(deduped); // auto-repair stored data
+    return deduped;
   } catch(e) { return []; }
 }
 function saveFoodEntriesDB(entries) { localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(entries)); }
@@ -2045,7 +2052,7 @@ function renderFood() {
   if (skipped) {
     if (macroSummary) macroSummary.style.display = 'none';
     if (foodForm) foodForm.style.display = 'none';
-    if (foodEntries) foodEntries.innerHTML = '<div class="card food-skipped-overlay"><div class="skip-big-icon">⏭</div><strong>Day skipped</strong><br>Calorie data for this day won\'t affect your trends or averages.<br>Hit "Resume tracking" above if you change your mind.</div>';
+    if (foodEntries) foodEntries.innerHTML = '<div class="card food-skipped-overlay"><div class="skip-big-icon">⏭</div><strong>Day skipped</strong><br>Calorie data for this day won\'t affect your trends or averages.<br>Hit "Resume tracking" below if you change your mind.</div>';
     return;
   } else {
     if (macroSummary) macroSummary.style.display = '';
@@ -2236,11 +2243,22 @@ async function pullFoodLibraryFromSheets() {
   } catch(e) { return null; }
 }
 
+// Normalize food name for dedup: lowercase, & → and, strip punctuation, collapse whitespace
+function normFoodName(n) { return (n||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+
 function mergeFoodEntries(local, remote) {
   const map = {};
-  local.forEach(e  => map[e.id] = e);
+  const seen = new Set(); // track date|meal|normalizedName to catch ID-mismatch & name-variant dupes
+  local.forEach(e => {
+    map[e.id] = e;
+    seen.add(e.date + '|' + e.meal + '|' + normFoodName(e.food_name));
+  });
   // Remote fills in entries not present locally (don't overwrite local edits)
-  remote.forEach(e => { if (!map[e.id]) map[e.id] = e; });
+  // Also skip if same date+meal+food (normalized) already exists under a different ID
+  remote.forEach(e => {
+    const key = e.date + '|' + e.meal + '|' + normFoodName(e.food_name);
+    if (!map[e.id] && !seen.has(key)) { map[e.id] = e; seen.add(key); }
+  });
   return Object.values(map);
 }
 
