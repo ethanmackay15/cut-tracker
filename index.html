@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Body Recomposition Tracker</title>
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <!-- iOS standalone mode -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Power" />
+  <link rel="apple-touch-icon" href="iconrecomp.png" />
+  <!-- Theme color for Android Chrome -->
+  <meta name="theme-color" content="#6366f1" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <style>
@@ -602,15 +611,21 @@
     body.sat .habit-add-btn { background:linear-gradient(135deg,#fb923c,#ec4899); }
     .habit-add-btn:hover { transform:translateY(-1px); }
 
-    /* Streaks */
-    .streak-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
+    /* 7-Day Goals */
+    .streak-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
     .streak-card {
       background:var(--bg); border-radius:12px; padding:14px; text-align:center;
     }
-    .streak-card .streak-name { font-size:0.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
-    .streak-card .streak-val { font-size:1.6rem; font-weight:800; color:var(--primary); line-height:1; }
-    body.sat .streak-card .streak-val { color:#f97316; }
+    .streak-card .streak-name { font-size:0.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:8px; }
+    .streak-card .streak-val { font-size:1.6rem; font-weight:800; line-height:1; }
+    .streak-card .streak-val.on-track { color:var(--green); }
+    .streak-card .streak-val.behind { color:var(--red); }
+    body.sat .streak-card .streak-val.on-track { color:#10b981; }
+    body.sat .streak-card .streak-val.behind { color:#f43f5e; }
     .streak-card .streak-unit { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+    .streak-card .streak-30d { font-size:0.72rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+    .streak-card .streak-30d.on-track { color:var(--green); }
+    .streak-card .streak-30d.behind { color:var(--red); }
 
     /* Heatmap grid */
     .habit-heatmap-row { margin-bottom:14px; }
@@ -1056,9 +1071,9 @@
       </div>
     </div>
 
-    <!-- Streaks -->
+    <!-- 7-Day Goals -->
     <div class="card" style="margin-top:18px">
-      <h2>Current Streaks</h2>
+      <h2>7-Day Goals</h2>
       <div class="streak-grid" id="habit-streaks"></div>
     </div>
 
@@ -2864,18 +2879,48 @@ function calcTotal30(habit) {
   return count;
 }
 
+// 7-day minimums per habit
+const HABIT_7D_GOALS = {
+  'exercise': 4,
+  'meditation': 4,
+  'stretch': 2,
+  'vacuums': 2,
+};
+const DEFAULT_7D_GOAL = 3;
+
+function calcTotal7(habit) {
+  const data = getHabitsData();
+  let count = 0;
+  const td = today();
+  for (let i = 0; i < 7; i++) {
+    const dt = new Date(td + 'T12:00:00');
+    dt.setDate(dt.getDate() - i);
+    const d = dt.toISOString().slice(0,10);
+    if (data[d] && data[d][habit] && data[d][habit].done) count++;
+  }
+  return count;
+}
+
 function renderHabitStreaks() {
   const habits = getHabitsList();
   const container = document.getElementById('habit-streaks');
   container.innerHTML = habits.map(h => {
-    const streak = calcStreak(h);
+    const last7 = calcTotal7(h);
+    const goal = HABIT_7D_GOALS[h] !== undefined ? HABIT_7D_GOALS[h] : DEFAULT_7D_GOAL;
+    const onTrack7 = last7 >= goal;
+
     const total30 = calcTotal30(h);
+    // Goal drawn out to 30 days: e.g. 4/7 over 30 days ≈ 17.1
+    const goal30 = Math.round((goal / 7) * 30);
+    const pct30 = Math.round((total30 / 30) * 100);
+    const onTrack30 = total30 >= goal30;
+
     return `
       <div class="streak-card">
         <div class="streak-name">${esc(h)}</div>
-        <div class="streak-val">${streak}</div>
-        <div class="streak-unit">day streak</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${total30}/30 days</div>
+        <div class="streak-val ${onTrack7 ? 'on-track' : 'behind'}">${last7} / ${goal}</div>
+        <div class="streak-unit">last 7 days</div>
+        <div class="streak-30d ${onTrack30 ? 'on-track' : 'behind'}">30-day: ${total30}/${goal30} days (${pct30}%)</div>
       </div>
     `;
   }).join('');
