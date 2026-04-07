@@ -1,0 +1,17 @@
+{
+  "name": "Power",
+  "short_name": "Power",
+  "description": "Track weight, food, habits, and trends",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "iconrecomp.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
