@@ -376,9 +376,18 @@
         font-size: 1rem !important; padding: 12px 14px !important; min-height: 48px;
       }
       #panel-food .btn { min-height: 48px; font-size: 1rem; }
-      .food-entry-row { padding: 10px 0; gap: 8px; flex-wrap: wrap; }
-      .food-entry-info { flex: 1 1 100%; display: flex; align-items: baseline; gap: 6px; }
-      .food-entry-macros { flex: 1 1 auto; font-size: 0.75rem; gap: 6px; padding-left: 0; }
+      .food-entry-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        grid-template-rows: auto auto;
+        gap: 2px 8px;
+        padding: 10px 0;
+        align-items: center;
+      }
+      .food-entry-info { grid-column: 1 / -1; }
+      .food-entry-name { display: inline; }
+      .food-entry-qty { display: inline; margin-left: 4px; }
+      .food-entry-macros { grid-column: 1; font-size: 0.78rem; }
       .food-delete-btn { min-width: 36px; min-height: 36px; font-size: 1rem;
         display: flex; align-items: center; justify-content: center; }
       .food-meal-header { flex-wrap: wrap; gap: 4px; }
