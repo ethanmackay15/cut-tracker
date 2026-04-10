@@ -2172,20 +2172,12 @@ function getFoodEntries() {
         dirty = true;
       }
     });
-    // Auto-dedup: prefer entry id, then fall back to date+meal+food_id for plan entries
+    // Auto-dedup: remove entries with duplicate ids
     const seenIds = new Set();
-    const seenKeys = new Set();
     const deduped = [];
     entries.forEach(e => {
-      // Primary dedup by entry id
       if (e.id && seenIds.has(e.id)) { dirty = true; return; }
-      // Secondary dedup: same date+meal+food using food_id when available (avoids
-      // colliding different-category foods that share a normalized name, e.g. Broccoli)
-      const foodKey = e.food_id || normFoodName(e.food_name);
-      const key = e.date + '|' + e.meal + '|' + foodKey;
-      if (seenKeys.has(key)) { dirty = true; return; }
       if (e.id) seenIds.add(e.id);
-      seenKeys.add(key);
       deduped.push(e);
     });
     if (dirty) saveFoodEntriesDB(deduped); // auto-repair stored data
