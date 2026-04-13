@@ -867,6 +867,7 @@
     <div class="food-sync-bar" id="food-sync-bar">
       <span class="sync-label" id="food-sync-label">In sync with Google Sheets</span>
       <button class="btn-sync-food clean" id="food-sync-btn" onclick="pushFoodToSheets()">Sync to Sheets</button>
+      <button class="btn-sync-food clean" id="food-refresh-btn" onclick="refreshFoodFromSheets()" style="margin-left:6px;background:#e0e7ff;color:#4338ca">Refresh from Sheets</button>
     </div>
 
     <!-- Log food form -->
@@ -1928,9 +1929,12 @@ function ensureTodayMealPlan() {
   if (!getFoodInitDates().has(td)) {
     // First time seeing this date — create plan entries locally only
     markFoodDateInitialized(td);
-    const planEntries = createPlanEntries(td);
     const existing = getFoodEntries();
-    saveFoodEntriesDB([...existing, ...planEntries]);
+    const hasExisting = existing.some(e => e.date === td);
+    if (!hasExisting) {
+      const planEntries = createPlanEntries(td);
+      saveFoodEntriesDB([...existing, ...planEntries]);
+    }
     markFoodDirty(); // flag that local changes need syncing
   }
 }
@@ -2037,12 +2041,12 @@ let FOOD_DB = [
   { id:'broccoli-b',     name:'Broccoli',              category:'Breakfast',     serving:85,   unit:'g',       cal:20,  p:2.0, c:4.0,  f:0.0  },
   { id:'salsa',          name:'Salsa',                 category:'Breakfast',     serving:2,    unit:'tbsp',    cal:10,  p:0.0, c:2.0,  f:0.0  },
   { id:'red-lentils',    name:'Red Lentils',           category:'Breakfast',     serving:0.25, unit:'cups',    cal:180, p:12.0,c:32.0, f:1.0  },
-  { id:'cottage-cheese', name:'Cottage Cheese',        category:'Breakfast',     serving:110,  unit:'g',       cal:90,  p:14.0,c:4.0,  f:2.0  },
+  { id:'greek-yogurt',   name:'Greek Yogurt (Nonfat TJ\'s)', category:'Breakfast', serving:150,  unit:'g',       cal:90,  p:15.0,c:6.0,  f:0.0  },
   { id:'cocoa-powder',   name:'Cocoa Powder',          category:'Breakfast',     serving:1,    unit:'scoop',   cal:15,  p:1.0, c:3.0,  f:0.5  },
   { id:'fish-pills',     name:'Fish Pills',            category:'Breakfast',     serving:1,    unit:'pill',    cal:15,  p:0.0, c:0.0,  f:1.5  },
   // Lunch
   { id:'chicken',        name:'Chicken Breast & Ribs', category:'Lunch',         serving:112,  unit:'g',       cal:130, p:24.0,c:0.0,  f:3.0  },
-  { id:'peas',           name:'Peas',                  category:'Lunch',         serving:90,   unit:'g',       cal:70,  p:5.0, c:13.0, f:0.0  },
+  { id:'brussell-sprouts', name:'Brussell Sprouts',     category:'Lunch',         serving:85,   unit:'g',       cal:35,  p:3.0, c:8.0,  f:0.0  },
   { id:'pinto-beans',    name:'Pinto Beans',           category:'Lunch',         serving:0.25, unit:'cups',    cal:80,  p:7.0, c:21.0, f:1.0  },
   { id:'avocado',        name:'Avocado',               category:'Lunch',         serving:50,   unit:'g',       cal:80,  p:1.0, c:4.0,  f:8.0  },
   // Dinner
@@ -2095,12 +2099,12 @@ let MEAL_PLAN_TEMPLATE = [
   { food_id:'broccoli-b',        food_name:'Broccoli',              meal:'Breakfast',     qty:150,    unit:'g',      calories:37.5,  protein:3.75,  carbs:7.5,    fat:0     },
   { food_id:'salsa-b',           food_name:'Salsa',                 meal:'Breakfast',     qty:4,      unit:'tbsp',   calories:20,    protein:0,     carbs:4,      fat:0     },
   { food_id:'red-lentils-b',     food_name:'Red Lentils',           meal:'Breakfast',     qty:0.375,  unit:'cups',   calories:270,   protein:18,    carbs:48,     fat:1.5   },
-  { food_id:'cottage-cheese-b',  food_name:'Cottage Cheese',        meal:'Breakfast',     qty:150,    unit:'g',      calories:122,   protein:19.1,  carbs:5.4,    fat:2.7   },
+  { food_id:'greek-yogurt--nonfat-tj-s--b', food_name:'Greek Yogurt (Nonfat TJ\'s)', meal:'Breakfast', qty:150, unit:'g', calories:90, protein:15, carbs:6, fat:0 },
   { food_id:'cocoa-powder-b',    food_name:'Cocoa Powder',          meal:'Breakfast',     qty:1,      unit:'scoop',  calories:15,    protein:1,     carbs:3,      fat:0.5   },
   { food_id:'fish-pills-b',      food_name:'Fish Pills',            meal:'Breakfast',     qty:1,      unit:'pill',   calories:15,    protein:0,     carbs:0,      fat:1.5   },
   // Lunch
   { food_id:'chicken-breast---ribs-l', food_name:'Chicken Breast & Ribs', meal:'Lunch',   qty:224,    unit:'g',      calories:260,   protein:48,    carbs:0,      fat:6     },
-  { food_id:'peas-l',            food_name:'Peas',                  meal:'Lunch',         qty:112.5,  unit:'g',      calories:87.5,  protein:6.25,  carbs:16.25,  fat:0     },
+  { food_id:'brussell-sprouts-l', food_name:'Brussell Sprouts',      meal:'Lunch',         qty:141.95, unit:'g',      calories:58.45, protein:5.01,  carbs:13.36,  fat:0     },
   { food_id:'pinto-beans-l',     food_name:'Pinto Beans',           meal:'Lunch',         qty:0.5,    unit:'cups',   calories:160,   protein:14,    carbs:42,     fat:2     },
   { food_id:'avocado-l',         food_name:'Avocado',               meal:'Lunch',         qty:90,     unit:'g',      calories:144,   protein:1.8,   carbs:7.2,    fat:14.4  },
   // Dinner
@@ -2416,9 +2420,14 @@ function renderFood() {
   // Does NOT mark the date as dirty — only explicit edits (add/delete/edit) trigger sync
   if (!getFoodInitDates().has(foodCurrentDate)) {
     markFoodDateInitialized(foodCurrentDate);
-    const planEntries = createPlanEntries(foodCurrentDate);
     const existing = getFoodEntries();
-    saveFoodEntriesDB([...existing, ...planEntries]);
+    // Only auto-populate from template if no entries already exist for this date
+    // (e.g. synced from Sheets). Prevents stale template items overlaying real data.
+    const hasExisting = existing.some(e => e.date === foodCurrentDate);
+    if (!hasExisting) {
+      const planEntries = createPlanEntries(foodCurrentDate);
+      saveFoodEntriesDB([...existing, ...planEntries]);
+    }
   }
 
   const allEntries = getFoodEntries();
@@ -2666,6 +2675,34 @@ async function pushFoodToSheets() {
     if (label) { label.textContent = 'Sync failed — try again'; label.className = 'sync-label dirty'; }
     if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync-food dirty'; }
     showToast('Sync failed');
+  }
+}
+
+async function refreshFoodFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) { showToast('No Sheets URL configured'); return; }
+  if (foodDirtyDates.size > 0 && !confirm(
+    `You have unsaved local changes for ${foodDirtyDates.size} day(s). ` +
+    'Refreshing will discard those changes and replace ALL local food data with Google Sheets. Continue?'
+  )) return;
+  const btn = document.getElementById('food-refresh-btn');
+  if (btn) { btn.textContent = 'Refreshing…'; btn.disabled = true; }
+  try {
+    const remote = await pullFoodFromSheets();
+    if (!remote) throw new Error('Pull failed');
+    // Full replace: wipe local food entries and use Sheets as source of truth
+    saveFoodEntriesDB(remote);
+    // Clear init-date tracking so the template won't re-stamp synced dates
+    // (our hasExisting guard will skip dates that already have entries)
+    localStorage.removeItem(FOOD_INIT_DATES_KEY);
+    foodDirtyDates.clear();
+    updateFoodSyncUI();
+    renderFood();
+    showToast('✓ Food log refreshed from Google Sheets (' + remote.length + ' entries)');
+  } catch(e) {
+    showToast('Refresh failed — your local data was not changed');
+  } finally {
+    if (btn) { btn.textContent = 'Refresh from Sheets'; btn.disabled = false; }
   }
 }
 
