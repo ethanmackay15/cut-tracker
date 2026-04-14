@@ -140,6 +140,135 @@
     .stat-lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
     .stat-sub { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
     .stat-primary { color: var(--primary); }
+
+    /* ───── Hero stats (Daily Weight tab) ───── */
+    .stats-hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
+    @media(max-width:700px){ .stats-hero { grid-template-columns: 1fr; } }
+    .stat-hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(145deg, #ffffff 0%, #fafbff 100%);
+      border-radius: 20px; padding: 28px 22px 24px;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(99,102,241,.12);
+      border: 1px solid rgba(226,232,240,.8);
+      transition: transform .2s cubic-bezier(.4,0,.2,1), box-shadow .2s;
+    }
+    .stat-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(15,23,42,.05), 0 16px 32px -12px rgba(99,102,241,.18);
+    }
+    .stat-hero::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      opacity:.85;
+    }
+    .stat-hero.accent-green::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .stat-hero.accent-teal::before  { background: linear-gradient(90deg, #06b6d4, #14b8a6); }
+    .stat-hero-val {
+      font-size: 2.6rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-hero.accent-green .stat-hero-val { background: linear-gradient(135deg, #059669, #10b981); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-hero.accent-teal  .stat-hero-val { background: linear-gradient(135deg, #0891b2, #14b8a6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-hero-lbl {
+      font-size: 0.72rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .09em; font-weight: 700; margin-top: 10px;
+    }
+    .stat-hero-sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-weight:500; }
+
+    /* ───── DEXA countdown card ───── */
+    .dexa-card {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 50%, #fff 100%);
+      border-radius: 18px; padding: 18px 22px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(251, 191, 36, .35);
+      box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 20px -12px rgba(245, 158, 11, .2);
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .dexa-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24, #fde68a);
+    }
+    .dexa-icon { font-size: 1.6rem; line-height: 1; }
+    .dexa-text { flex: 1; min-width: 200px; }
+    .dexa-lbl {
+      font-size: 0.68rem; color: #92400e; text-transform: uppercase;
+      letter-spacing: .1em; font-weight: 700;
+    }
+    .dexa-headline {
+      font-size: 1.05rem; font-weight: 700; color: #1f2937; margin-top: 2px;
+      letter-spacing: -0.01em;
+    }
+    .dexa-sub { font-size: 0.8rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .dexa-countdown {
+      display: flex; align-items: baseline; gap: 6px;
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      font-variant-numeric: tabular-nums;
+    }
+    .dexa-countdown-num { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+    .dexa-countdown-unit { font-size: 0.9rem; font-weight: 700; }
+    .dexa-progress {
+      width: 100%; height: 5px; background: rgba(251, 191, 36, .18);
+      border-radius: 999px; overflow: hidden; margin-top: 10px;
+    }
+    .dexa-progress-fill {
+      height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      border-radius: 999px; transition: width .4s ease;
+    }
+
+    /* ───── DEXA trends stats strip ───── */
+    .dexa-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+      margin: 12px 0 18px;
+    }
+    @media(max-width:700px){ .dexa-stats { grid-template-columns: repeat(2, 1fr); } }
+    .dexa-stat {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .dexa-stat-val {
+      font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+    .dexa-stat-lbl {
+      font-size: 0.65rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .08em; font-weight: 700; margin-top: 2px;
+    }
+    .dexa-stat-sub { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+    .dexa-delta-pos { color: #dc2626; }
+    .dexa-delta-neg { color: #059669; }
+
+    /* DEXA add/edit modal */
+    .dexa-modal-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(15,23,42,.45);
+      z-index: 100; align-items: center; justify-content: center; padding: 16px;
+    }
+    .dexa-modal-overlay.open { display: flex; }
+    .dexa-modal {
+      background: #fff; border-radius: 18px; padding: 22px 22px 20px;
+      max-width: 520px; width: 100%;
+      box-shadow: 0 10px 40px -8px rgba(15,23,42,.3);
+    }
+    .dexa-form-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px;
+    }
+    .dexa-form-grid label {
+      display: block; font-size: 0.72rem; color: var(--muted);
+      font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px;
+    }
+    .dexa-form-grid input {
+      width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.95rem; font-family: inherit;
+    }
+    .dexa-del-btn {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      font-size: 0.9rem; padding: 2px 6px; border-radius: 4px;
+    }
+    .dexa-del-btn:hover { color: #dc2626; background: rgba(220,38,38,.08); }
     .clr-green { color: var(--green); }
     .clr-red { color: var(--red); }
     .clr-orange { color: var(--orange); }
@@ -793,8 +922,8 @@
   </div>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid var(--border)">
-  <label style="margin-bottom:6px;display:block;font-weight:700">Weight Goal</label>
-  <p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">Used to draw the goal line and track pace.</p>
+  <label style="margin-bottom:6px;display:block;font-weight:700">Body Comp Target</label>
+  <p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">The north star is a DEXA body-fat target; goal weight is the day-to-day proxy. No end date — just direction.</p>
   <div class="targets-grid">
     <div>
       <label>Start Date</label>
@@ -805,12 +934,24 @@
       <input type="number" id="cfg-start-weight" min="80" max="400" step="0.1" oninput="saveCfg()" />
     </div>
     <div>
+      <label>Goal Weight (lbs)</label>
+      <input type="number" id="cfg-goal-weight" min="80" max="400" step="0.1" oninput="saveCfg()" />
+    </div>
+    <div>
       <label>Goal Rate (lbs/week)</label>
       <input type="number" id="cfg-goal-rate" min="0.1" max="3" step="0.125" oninput="saveCfg()" />
     </div>
     <div>
-      <label>Duration (days)</label>
-      <input type="number" id="cfg-duration" min="7" max="365" step="1" oninput="saveCfg()" />
+      <label>DEXA Body-Fat Target (%)</label>
+      <input type="number" id="cfg-bf-target" min="5" max="40" step="0.5" oninput="saveCfg()" />
+    </div>
+    <div>
+      <label>Last DEXA Date</label>
+      <input type="text" id="cfg-last-dexa" placeholder="YYYY-MM-DD" oninput="saveCfg()" />
+    </div>
+    <div>
+      <label>Next DEXA Date</label>
+      <input type="text" id="cfg-next-dexa" placeholder="YYYY-MM-DD" oninput="saveCfg()" />
     </div>
   </div>
 </div>
@@ -978,35 +1119,34 @@
   <!-- ════ PANEL: Daily Weight ════ -->
   <div class="panel active" id="panel-weight">
 
-    <!-- Progress -->
-    <div class="card">
-      <div class="prog-row">
-        <span class="prog-label" id="week-label">Week 1 of 8</span>
-        <span class="prog-right" id="days-left"></span>
+    <!-- DEXA countdown -->
+    <div class="dexa-card" id="dexa-card" style="display:none">
+      <div class="dexa-icon">🎯</div>
+      <div class="dexa-text">
+        <div class="dexa-lbl">Next DEXA</div>
+        <div class="dexa-headline" id="dexa-headline">—</div>
+        <div class="dexa-sub" id="dexa-sub">—</div>
+        <div class="dexa-progress"><div class="dexa-progress-fill" id="dexa-progress-fill" style="width:0%"></div></div>
       </div>
-      <div class="prog-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
-      <div class="week-ticks" id="week-ticks"></div>
+      <div class="dexa-countdown">
+        <span class="dexa-countdown-num" id="dexa-days">—</span>
+        <span class="dexa-countdown-unit" id="dexa-days-unit">days</span>
+      </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-val stat-primary" id="s-avg">—</div>
-        <div class="stat-lbl">7-Day Avg</div>
+    <!-- Stats (focused: 7-day avg, total lost, avg loss/week since start) -->
+    <div class="stats-hero">
+      <div class="stat-hero">
+        <div class="stat-hero-val" id="s-avg">—</div>
+        <div class="stat-hero-lbl">7-Day Avg</div>
       </div>
-      <div class="stat">
-        <div class="stat-val" id="s-lost">—</div>
-        <div class="stat-lbl">Lost Since Day 1</div>
+      <div class="stat-hero accent-green">
+        <div class="stat-hero-val" id="s-lost">—</div>
+        <div class="stat-hero-lbl">Lost Since Day 1</div>
       </div>
-      <div class="stat">
-        <div class="stat-val" id="s-7d-change">—</div>
-        <div class="stat-lbl">7-Day Change</div>
-        <div class="stat-sub">vs. week prior avg</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val" id="s-rate">—</div>
-        <div class="stat-lbl">Rate of Loss</div>
-        <div class="stat-sub">lbs / week (14-day)</div>
+      <div class="stat-hero accent-teal">
+        <div class="stat-hero-val" id="s-avg-rate">—</div>
+        <div class="stat-hero-lbl">Avg Loss / Week Since Start</div>
       </div>
     </div>
 
@@ -1140,17 +1280,7 @@
     </div>
 
     <!-- Summary stats -->
-    <div class="stats" style="margin-top:18px">
-      <div class="stat">
-        <div class="stat-val clr-blue" id="tr-avg-weight">—</div>
-        <div class="stat-lbl">Avg Weight</div>
-        <div class="stat-sub">last 7 days</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val" id="tr-wt-change">—</div>
-        <div class="stat-lbl">Weight Change</div>
-        <div class="stat-sub">last 7 days</div>
-      </div>
+    <div class="stats" style="margin-top:18px;grid-template-columns:repeat(2,1fr)">
       <div class="stat">
         <div class="stat-val stat-primary" id="tr-avg-cal">—</div>
         <div class="stat-lbl">Avg Calories</div>
@@ -1159,12 +1289,7 @@
       <div class="stat">
         <div class="stat-val" id="tr-vs-pace">—</div>
         <div class="stat-lbl">vs Goal Pace</div>
-        <div class="stat-sub" id="tr-pace-sub">target: —</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val clr-green" id="tr-avg-steps">—</div>
-        <div class="stat-lbl">Avg Steps</div>
-        <div class="stat-sub">last 7 days</div>
+        <div class="stat-sub" id="tr-pace-sub">last 7d vs −0.65 lbs/wk target</div>
       </div>
     </div>
 
@@ -1198,6 +1323,55 @@
       </div>
     </div>
 
+    <!-- DEXA body composition chart -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+        <h2 style="margin-bottom:0">DEXA Body Composition</h2>
+        <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add Scan</button>
+      </div>
+      <div class="dexa-stats" id="dexa-stats"></div>
+      <div class="chart-wrap"><canvas id="chart-dexa" height="240"></canvas></div>
+    </div>
+
+    <!-- DEXA scan history table -->
+    <div class="card">
+      <h2>DEXA Scan History</h2>
+      <div class="history-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th style="text-align:right">BF %</th>
+              <th style="text-align:right">Fat (lbs)</th>
+              <th style="text-align:right">Lean (lbs)</th>
+              <th style="text-align:right">Total (lbs)</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="dexa-history-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEXA add/edit modal -->
+    <div class="dexa-modal-overlay" id="dexa-modal-overlay" onclick="closeDexaForm(event)">
+      <div class="dexa-modal" onclick="event.stopPropagation()">
+        <h2 id="dexa-modal-title" style="margin-top:0">Add DEXA Scan</h2>
+        <div class="dexa-form-grid">
+          <div><label>Date</label><input type="text" id="dexa-f-date" placeholder="YYYY-MM-DD" /></div>
+          <div><label>Body Fat %</label><input type="number" id="dexa-f-bf" step="0.1" min="3" max="60" /></div>
+          <div><label>Fat Tissue (lbs)</label><input type="number" id="dexa-f-fat" step="0.1" min="0" max="200" /></div>
+          <div><label>Lean Tissue (lbs)</label><input type="number" id="dexa-f-lean" step="0.1" min="0" max="300" /></div>
+          <div><label>Total Mass (lbs)</label><input type="number" id="dexa-f-total" step="0.1" min="0" max="500" /></div>
+          <div><label>BMC (lbs, optional)</label><input type="number" id="dexa-f-bmc" step="0.1" min="0" max="30" /></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+          <button class="btn-sm" onclick="closeDexaForm()">Cancel</button>
+          <button class="btn-sm" onclick="saveDexaForm()" style="background:var(--primary);color:#fff;border:none">Save Scan</button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /panel-trends -->
 
 
@@ -1210,8 +1384,11 @@ const CFG_KEY = 'cut_tracker_cfg';
 const CFG_DEFAULTS = {
   startDate:    '2026-03-15',
   startWeight:  190.8,
-  durationDays: 55,
-  goalRate:     0.625
+  goalWeight:   174,
+  goalRate:     0.65,
+  bfTarget:     12,
+  lastDexaDate: '2026-03-21',
+  nextDexaDate: '2026-05-01'
 };
 // Mutable CFG — loaded from localStorage, falls back to defaults
 const CFG = (() => {
@@ -1220,11 +1397,57 @@ const CFG = (() => {
     return {
       startDate:    stored.startDate    || CFG_DEFAULTS.startDate,
       startWeight:  stored.startWeight  != null ? Number(stored.startWeight)  : CFG_DEFAULTS.startWeight,
-      durationDays: stored.durationDays != null ? Number(stored.durationDays) : CFG_DEFAULTS.durationDays,
-      goalRate:     stored.goalRate     != null ? Number(stored.goalRate)     : CFG_DEFAULTS.goalRate
+      goalWeight:   stored.goalWeight   != null ? Number(stored.goalWeight)   : CFG_DEFAULTS.goalWeight,
+      goalRate:     stored.goalRate     != null ? Number(stored.goalRate)     : CFG_DEFAULTS.goalRate,
+      bfTarget:     stored.bfTarget     != null ? Number(stored.bfTarget)     : CFG_DEFAULTS.bfTarget,
+      lastDexaDate: stored.lastDexaDate || CFG_DEFAULTS.lastDexaDate,
+      nextDexaDate: stored.nextDexaDate || CFG_DEFAULTS.nextDexaDate
     };
   } catch { return { ...CFG_DEFAULTS }; }
 })();
+// Helper: weeks to reach goalWeight at goalRate (used for drawing goal pace line only)
+function projectedGoalDate() {
+  const lbsToLose = Math.max(0, CFG.startWeight - CFG.goalWeight);
+  const weeks = CFG.goalRate > 0 ? lbsToLose / CFG.goalRate : 0;
+  return addDays(CFG.startDate, Math.round(weeks * 7));
+}
+// ─── DEXA scan history ───────────────────────────────────────────────────────
+const DEXA_KEY = 'dexa_scans_v1';
+const DEXA_SEED = [
+  {date:'2023-07-15', bf:18.3, total:191.1, fat:34.9, lean:148.2, bmc:8.0},
+  {date:'2023-09-09', bf:15.5, total:185.9, fat:28.8, lean:149.1, bmc:8.0},
+  {date:'2023-11-18', bf:14.3, total:188.1, fat:26.9, lean:153.1, bmc:8.1},
+  {date:'2024-01-18', bf:17.2, total:194.1, fat:33.4, lean:152.6, bmc:8.2},
+  {date:'2024-03-16', bf:15.5, total:193.3, fat:30.0, lean:155.2, bmc:8.1},
+  {date:'2024-05-11', bf:15.5, total:193.2, fat:29.9, lean:155.2, bmc:8.1},
+  {date:'2024-06-20', bf:14.7, total:187.8, fat:27.6, lean:152.3, bmc:8.0},
+  {date:'2025-11-29', bf:17.7, total:184.0, fat:32.6, lean:143.6, bmc:7.9},
+  {date:'2025-12-20', bf:16.5, total:181.8, fat:30.1, lean:143.9, bmc:7.8},
+  {date:'2026-01-31', bf:18.4, total:181.5, fat:33.4, lean:140.4, bmc:7.7},
+  {date:'2026-03-21', bf:19.3, total:190.2, fat:36.7, lean:145.8, bmc:7.7}
+];
+function getDexaScans() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(DEXA_KEY) || 'null');
+    if (Array.isArray(stored)) return stored;
+  } catch {}
+  localStorage.setItem(DEXA_KEY, JSON.stringify(DEXA_SEED));
+  return DEXA_SEED.slice();
+}
+function saveDexaScans(arr) {
+  const clean = arr.filter(s => s && s.date).sort((a,b) => a.date.localeCompare(b.date));
+  localStorage.setItem(DEXA_KEY, JSON.stringify(clean));
+  return clean;
+}
+function upsertDexaScan(scan) {
+  const arr = getDexaScans().filter(s => s.date !== scan.date);
+  arr.push(scan);
+  return saveDexaScans(arr);
+}
+function deleteDexaScan(date) {
+  return saveDexaScans(getDexaScans().filter(s => s.date !== date));
+}
+
 const KEY = 'cut_tracker_v2';
 const SHEETS_URL_KEY = 'cut_tracker_sheets_url';
 const LAST_EXPORT_KEY = 'cut_tracker_last_export';
@@ -1333,26 +1556,39 @@ function mergeEntries(local, remote) {
 function loadCfgFields() {
   const sd = document.getElementById('cfg-start-date');
   const sw = document.getElementById('cfg-start-weight');
+  const gw = document.getElementById('cfg-goal-weight');
   const gr = document.getElementById('cfg-goal-rate');
-  const du = document.getElementById('cfg-duration');
+  const bf = document.getElementById('cfg-bf-target');
+  const ld = document.getElementById('cfg-last-dexa');
+  const nd = document.getElementById('cfg-next-dexa');
   if (sd) sd.value = CFG.startDate;
   if (sw) sw.value = CFG.startWeight;
+  if (gw) gw.value = CFG.goalWeight;
   if (gr) gr.value = CFG.goalRate;
-  if (du) du.value = CFG.durationDays;
+  if (bf) bf.value = CFG.bfTarget;
+  if (ld) ld.value = CFG.lastDexaDate || '';
+  if (nd) nd.value = CFG.nextDexaDate || '';
 }
 
 function saveCfg() {
   const sd = document.getElementById('cfg-start-date');
   const sw = document.getElementById('cfg-start-weight');
+  const gw = document.getElementById('cfg-goal-weight');
   const gr = document.getElementById('cfg-goal-rate');
-  const du = document.getElementById('cfg-duration');
+  const bf = document.getElementById('cfg-bf-target');
+  const ld = document.getElementById('cfg-last-dexa');
+  const nd = document.getElementById('cfg-next-dexa');
   if (sd && sd.value) CFG.startDate    = sd.value.trim();
   if (sw && sw.value) CFG.startWeight  = parseFloat(sw.value);
+  if (gw && gw.value) CFG.goalWeight   = parseFloat(gw.value);
   if (gr && gr.value) CFG.goalRate     = parseFloat(gr.value);
-  if (du && du.value) CFG.durationDays = parseInt(du.value, 10);
+  if (bf && bf.value) CFG.bfTarget     = parseFloat(bf.value);
+  if (ld) CFG.lastDexaDate = ld.value.trim();
+  if (nd) CFG.nextDexaDate = nd.value.trim();
   localStorage.setItem(CFG_KEY, JSON.stringify({
     startDate: CFG.startDate, startWeight: CFG.startWeight,
-    durationDays: CFG.durationDays, goalRate: CFG.goalRate
+    goalWeight: CFG.goalWeight, goalRate: CFG.goalRate, bfTarget: CFG.bfTarget,
+    lastDexaDate: CFG.lastDexaDate, nextDexaDate: CFG.nextDexaDate
   }));
   renderWeight();
   renderTrends();
@@ -1444,80 +1680,40 @@ function projectedEndWeight(entries) {
   const denom = xs.reduce((s,x)=>s+(x-xm)**2,0);
   if (!denom) return ys[ys.length-1];
   const slope = xs.reduce((s,x,i)=>s+(x-xm)*(ys[i]-ym),0)/denom;
-  const daysLeft = daysBetween(today(), addDays(CFG.startDate, CFG.durationDays));
-  return Math.max(0, ys[ys.length-1] + slope * Math.max(daysLeft,0));
+  const daysLeft = Math.max(0, daysBetween(today(), projectedGoalDate()));
+  return Math.max(0, ys[ys.length-1] + slope * daysLeft);
 }
 
 // ─── Render Weight Panel ──────────────────────────────────────────────────────
 function renderWeight() {
   const data = load();
   const td = today();
-  const endDate = addDays(CFG.startDate, CFG.durationDays);
 
   // Saturday mode
   const previewSat = new URLSearchParams(window.location.search).get('preview') === 'saturday';
   if (isSat(td) || previewSat) document.body.classList.add('sat');
   else document.body.classList.remove('sat');
 
-  // Progress
-  const elapsed = Math.max(0, Math.min(daysBetween(CFG.startDate, td), CFG.durationDays));
-  const pct = (elapsed / CFG.durationDays * 100).toFixed(1);
-  const dLeft = Math.max(0, daysBetween(td, endDate));
-  const week = Math.min(8, Math.ceil(elapsed/7)||1);
-  document.getElementById('prog-fill').style.width = pct + '%';
-  const totalWeeks = Math.ceil(CFG.durationDays / 7);
-  document.getElementById('week-label').textContent = `Week ${Math.min(week, totalWeeks)} of ${totalWeeks}`;
-  document.getElementById('days-left').textContent = `${dLeft} day${dLeft!==1?'s':''} to go`;
-
-  // Build week ticks dynamically
-  const ticksEl = document.getElementById('week-ticks');
-  if (ticksEl) {
-    ticksEl.innerHTML = '';
-    for (let w = 1; w <= totalWeeks; w++) {
-      const dayStart = (w - 1) * 7;
-      const leftPct = (dayStart / CFG.durationDays) * 100;
-      const tick = document.createElement('span');
-      tick.className = 'week-tick';
-      tick.style.left = leftPct + '%';
-      tick.style.transform = w === 1 ? 'translateX(0)' : 'translateX(-50%)';
-      tick.textContent = `W${w}`;
-      ticksEl.appendChild(tick);
-    }
-    // Finish line at 100%
-    const finish = document.createElement('span');
-    finish.className = 'week-tick';
-    finish.style.left = '100%';
-    finish.style.transform = 'translateX(-100%)';
-    finish.title = 'Finish line!';
-    finish.textContent = '🏁';
-    ticksEl.appendChild(finish);
-  }
-
-  // Stats
+  // Stats — 3 focused cards: 7-day avg, total lost since start, avg loss/week since start
   const avg = currentAvg(data.entries);
   document.getElementById('s-avg').textContent = avg ? avg.toFixed(1)+' lbs' : '—';
-  const lost = avg ? CFG.startWeight - avg : null;
+
+  const lost = avg != null ? CFG.startWeight - avg : null;
   const lostEl = document.getElementById('s-lost');
   if (lost !== null) {
     lostEl.textContent = (lost>=0?'−':'+')+Math.abs(lost).toFixed(1)+' lbs';
-    lostEl.className = 'stat-val ' + (lost>=0?'clr-green':'clr-red');
-  } else { lostEl.textContent='—'; lostEl.className='stat-val'; }
-  const rate = rateOfLoss(data.entries);
-  const rateEl = document.getElementById('s-rate');
-  if (rate !== null) {
-    const losing = rate < 0;
-    rateEl.textContent = (losing ? '−' : '+') + Math.abs(rate).toFixed(2) + ' lbs';
-    rateEl.className = 'stat-val ' + (losing ? 'clr-green' : 'clr-red');
-  } else { rateEl.textContent = '—'; rateEl.className = 'stat-val'; }
-  const change7 = sevenDayChange(data.entries);
-  const changeEl = document.getElementById('s-7d-change');
-  if (change7 !== null) {
-    const gained = change7 > 0;
-    changeEl.textContent = (gained ? '+' : '−') + Math.abs(change7).toFixed(1) + ' lbs';
-    changeEl.className = 'stat-val ' + (gained ? 'clr-red' : 'clr-green');
   } else {
-    changeEl.textContent = '—';
-    changeEl.className = 'stat-val';
+    lostEl.textContent = '—';
+  }
+  // Average loss per week since start = total lost / weeks elapsed
+  const daysSinceStart = Math.max(1, daysBetween(CFG.startDate, td));
+  const weeksSinceStart = daysSinceStart / 7;
+  const avgRateEl = document.getElementById('s-avg-rate');
+  if (lost !== null && weeksSinceStart > 0) {
+    const perWeek = lost / weeksSinceStart; // positive if losing
+    avgRateEl.textContent = (perWeek>=0?'−':'+') + Math.abs(perWeek).toFixed(2) + ' lbs';
+  } else {
+    avgRateEl.textContent = '—';
   }
 
   // Log form
@@ -1534,8 +1730,54 @@ function renderWeight() {
     document.getElementById('edit-link').style.display = 'none';
   }
 
+  renderDexaCountdown();
   drawWeightChart(data);
   renderHistory(data);
+}
+
+function renderDexaCountdown() {
+  const card = document.getElementById('dexa-card');
+  if (!card) return;
+  const next = CFG.nextDexaDate;
+  if (!next) { card.style.display = 'none'; return; }
+  card.style.display = 'flex';
+  const td = today();
+  const daysRemaining = daysBetween(td, next);
+  const headline = document.getElementById('dexa-headline');
+  const sub = document.getElementById('dexa-sub');
+  const num = document.getElementById('dexa-days');
+  const unit = document.getElementById('dexa-days-unit');
+  const fill = document.getElementById('dexa-progress-fill');
+
+  // Format target date nicely
+  const d = new Date(next + 'T12:00:00');
+  const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  headline.textContent = dateStr;
+
+  if (daysRemaining > 0) {
+    num.textContent = daysRemaining;
+    unit.textContent = daysRemaining === 1 ? 'day' : 'days';
+    sub.textContent = '';
+  } else if (daysRemaining === 0) {
+    num.textContent = '🎯';
+    unit.textContent = 'today';
+    sub.textContent = "Scan day! Let's see the numbers.";
+  } else {
+    num.textContent = Math.abs(daysRemaining);
+    unit.textContent = 'days ago';
+    sub.textContent = 'Time to schedule the next one.';
+  }
+
+  // Progress bar from lastDexaDate → nextDexaDate
+  const last = CFG.lastDexaDate;
+  if (last && daysRemaining >= 0) {
+    const total = Math.max(1, daysBetween(last, next));
+    const elapsed = Math.max(0, daysBetween(last, td));
+    const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+    fill.style.width = pct.toFixed(1) + '%';
+  } else {
+    fill.style.width = daysRemaining < 0 ? '100%' : '0%';
+  }
 }
 
 function showForm() {
@@ -1598,10 +1840,20 @@ function drawWeightChart(data) {
     return;
   }
 
-  // Build date labels spanning from start through max(endDate, lastEntry)
-  const endDate = addDays(CFG.startDate, CFG.durationDays);
-  const lastEntryDate = entries[entries.length-1].date;
-  const chartEnd = lastEntryDate > endDate ? lastEntryDate : endDate;
+  // Chart window: focus on what's happening, not the far-off projection.
+  // x-axis runs from start date through ~3 weeks past the last entry (or today).
+  const fullGoalDate   = projectedGoalDate();
+  const lastEntryDate  = entries[entries.length-1].date;
+  const anchorEnd      = lastEntryDate > today() ? lastEntryDate : today();
+  const chartEnd       = addDays(anchorEnd, 21);  // small runway ahead of "now"
+  const totalDays      = Math.max(1, daysBetween(CFG.startDate, chartEnd));
+
+  // Goal-pace line: only extend to a near-term milestone (next whole-pound interim
+  // weight reachable within the chart window), not all the way to the final goal.
+  // This keeps the slope visible without the line disappearing into the distance.
+  const daysShown       = daysBetween(CFG.startDate, chartEnd);
+  const paceEndWeight   = Math.max(CFG.goalWeight, CFG.startWeight - (CFG.goalRate * daysShown / 7));
+  const endDate         = chartEnd; // where the pace line terminates on the chart
 
   // Daily weight dots — color Saturdays differently
   const dailyDots = entries.map(e => ({ x:e.date, y:e.weight }));
@@ -1616,8 +1868,8 @@ function drawWeightChart(data) {
     }
   }
 
-  // Goal pace line (straight line from start weight to goal end weight)
-  const goalEnd = CFG.startWeight - (CFG.goalRate * (CFG.durationDays / 7));
+  // Goal pace line (straight line from start weight, extended only as far as the visible chart window)
+  const goalEnd = paceEndWeight;
   const goalLine = [
     { x: CFG.startDate, y: CFG.startWeight },
     { x: endDate,       y: goalEnd }
@@ -1697,7 +1949,7 @@ function drawWeightChart(data) {
           min: CFG.startDate,
           max: chartEnd,
           time: {
-            unit: CFG.durationDays > 60 ? 'month' : CFG.durationDays > 21 ? 'week' : 'day',
+            unit: totalDays > 60 ? 'month' : totalDays > 21 ? 'week' : 'day',
             tooltipFormat: 'MMM d',
             displayFormats: { day: 'MMM d', week: 'MMM d', month: 'MMM yyyy' }
           },
@@ -3515,6 +3767,9 @@ function setTrendsRange(n) {
 }
 
 function renderTrends() {
+  // DEXA section is independent of daily data — render up front
+  renderDexaSection();
+
   // ── Gather data ──
   const foodEntries = getFoodEntries();
   const weightData  = load();
@@ -3568,41 +3823,37 @@ function renderTrends() {
   const wt7ago    = rollingAvg(allWt, addDays(todayStr, -7), 7);
   const weeklyRate = (wtNow !== null && wt7ago !== null) ? parseFloat((wtNow - wt7ago).toFixed(2)) : null;
 
+  // 14-day rolling rate (lbs/week) — smoother, less noisy than 7d
+  const wt14ago = rollingAvg(allWt, addDays(todayStr, -14), 7);
+  const rate14  = (wtNow !== null && wt14ago !== null) ? parseFloat(((wtNow - wt14ago) / 2).toFixed(2)) : null;
+
   // vs goal pace
   const goalRate = CFG.goalRate || 0.625; // lbs/week loss target
   const paceSubEl = document.getElementById('tr-pace-sub');
-  if (paceSubEl) paceSubEl.textContent = `target: −${goalRate} lbs/wk`;
+  if (paceSubEl) paceSubEl.textContent = `14d pace · target −${goalRate}`;
 
   const last7steps = last7days.filter(d => stepsByDate[d]);
   const avgSteps   = last7steps.length ? Math.round(last7steps.reduce((s,d) => s + Number(stepsByDate[d]), 0) / last7steps.length) : null;
 
   document.getElementById('tr-avg-cal').textContent    = avgCal !== null ? avgCal.toLocaleString() + ' kcal' : '—';
-  document.getElementById('tr-avg-weight').textContent = avgWt  !== null ? avgWt + ' lbs' : '—';
-  document.getElementById('tr-avg-steps').textContent  = avgSteps !== null ? avgSteps.toLocaleString() : '—';
-
-  const wtEl = document.getElementById('tr-wt-change');
-  if (weeklyRate !== null) {
-    const sign = weeklyRate > 0 ? '+' : '';
-    wtEl.textContent = sign + weeklyRate.toFixed(1) + ' lbs/wk';
-    wtEl.className   = 'stat-val ' + (weeklyRate < -0.1 ? 'clr-green' : weeklyRate > 0.1 ? 'clr-red' : '');
-  } else {
-    wtEl.textContent = '—';
-    wtEl.className   = 'stat-val';
-  }
+  const avgWtEl = document.getElementById('tr-avg-weight');
+  if (avgWtEl) avgWtEl.textContent = avgWt !== null ? avgWt + ' lbs' : '—';
+  const avgStepsEl = document.getElementById('tr-avg-steps');
+  if (avgStepsEl) avgStepsEl.textContent = avgSteps !== null ? avgSteps.toLocaleString() : '—';
 
   const paceEl = document.getElementById('tr-vs-pace');
-  if (weeklyRate !== null) {
-    const diff = weeklyRate - (-goalRate); // negative diff = losing faster than goal
-    const absDiff = Math.abs(diff).toFixed(1);
-    if (Math.abs(diff) < 0.05) {
-      paceEl.textContent = 'On pace';
+  if (rate14 !== null) {
+    // Display the actual rate. Negative = losing, positive = gaining.
+    const sign = rate14 > 0 ? '+' : (rate14 < 0 ? '−' : '');
+    paceEl.textContent = sign + Math.abs(rate14).toFixed(2) + ' lbs/wk';
+    // Gentle color: green if at-or-faster than target, muted within 0.3 buffer, amber beyond
+    const diff = rate14 - (-goalRate); // negative = faster/better than target
+    if (diff <= 0) {
       paceEl.className = 'stat-val clr-green';
-    } else if (diff < 0) {
-      paceEl.textContent = `Ahead by ${absDiff}`;
-      paceEl.className = 'stat-val clr-green';
+    } else if (diff < 0.3) {
+      paceEl.className = 'stat-val';
     } else {
-      paceEl.textContent = `Behind by ${absDiff}`;
-      paceEl.className = 'stat-val clr-red';
+      paceEl.className = 'stat-val clr-orange';
     }
   } else {
     paceEl.textContent = '—';
@@ -3801,6 +4052,244 @@ function renderTrends() {
       <td style="text-align:right;font-weight:700;${dColor}">${dStr}</td>
     </tr>`;
   }).join('');
+}
+
+// ─── DEXA Body Composition ───────────────────────────────────────────────────
+let dexaChart = null;
+
+function renderDexaSection() {
+  const scans = getDexaScans();
+  renderDexaStats(scans);
+  renderDexaHistory(scans);
+  drawDexaChart(scans);
+}
+
+function renderDexaStats(scans) {
+  const el = document.getElementById('dexa-stats');
+  if (!el) return;
+  if (!scans.length) { el.innerHTML = ''; return; }
+  const latest = scans[scans.length - 1];
+  const best   = scans.reduce((a, b) => a.bf <= b.bf ? a : b);
+  const first  = scans[0];
+  const dBf   = latest.bf   - first.bf;
+  const dLean = latest.lean - first.lean;
+  const dFat  = latest.fat  - first.fat;
+
+  const target = CFG.bfTarget || 12;
+  const toTarget = latest.bf - target;
+
+  const fmtDelta = (v, suf, flipColor) => {
+    const s = (v > 0 ? '+' : '') + v.toFixed(1) + suf;
+    const cls = Math.abs(v) < 0.05 ? '' :
+      (flipColor ? (v > 0 ? 'dexa-delta-neg' : 'dexa-delta-pos')  // for lean: up is good
+                 : (v > 0 ? 'dexa-delta-pos' : 'dexa-delta-neg')); // for bf/fat: up is bad
+    return `<span class="${cls}">${s}</span>`;
+  };
+
+  el.innerHTML = `
+    <div class="dexa-stat">
+      <div class="dexa-stat-val">${latest.bf.toFixed(1)}%</div>
+      <div class="dexa-stat-lbl">Latest BF</div>
+      <div class="dexa-stat-sub">${fmtDateShort(latest.date)}</div>
+    </div>
+    <div class="dexa-stat">
+      <div class="dexa-stat-val">${toTarget > 0 ? '−' : '+'}${Math.abs(toTarget).toFixed(1)}%</div>
+      <div class="dexa-stat-lbl">To Target (${target}%)</div>
+      <div class="dexa-stat-sub">${toTarget > 0 ? 'to go' : 'past target'}</div>
+    </div>
+    <div class="dexa-stat">
+      <div class="dexa-stat-val">${latest.lean.toFixed(1)} lbs</div>
+      <div class="dexa-stat-lbl">Lean Mass</div>
+      <div class="dexa-stat-sub">${fmtDelta(dLean, ' lbs', true)} since first scan</div>
+    </div>
+    <div class="dexa-stat">
+      <div class="dexa-stat-val">${latest.fat.toFixed(1)} lbs</div>
+      <div class="dexa-stat-lbl">Fat Mass</div>
+      <div class="dexa-stat-sub">Best BF: ${best.bf.toFixed(1)}% (${fmtDateShort(best.date)})</div>
+    </div>
+  `;
+}
+
+function renderDexaHistory(scans) {
+  const tbody = document.getElementById('dexa-history-body');
+  if (!tbody) return;
+  if (!scans.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No DEXA scans logged.</td></tr>';
+    return;
+  }
+  const rows = scans.slice().reverse(); // newest first
+  tbody.innerHTML = rows.map(s => `
+    <tr>
+      <td><strong>${fmtDateShort(s.date)}</strong></td>
+      <td style="text-align:right">${s.bf.toFixed(1)}%</td>
+      <td style="text-align:right">${s.fat.toFixed(1)}</td>
+      <td style="text-align:right">${s.lean.toFixed(1)}</td>
+      <td style="text-align:right">${s.total.toFixed(1)}</td>
+      <td style="text-align:right">
+        <button class="dexa-del-btn" title="Edit" onclick="openDexaForm('${s.date}')">✎</button>
+        <button class="dexa-del-btn" title="Delete" onclick="confirmDeleteDexa('${s.date}')">✕</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function drawDexaChart(scans) {
+  const canvas = document.getElementById('chart-dexa');
+  if (!canvas) return;
+  if (dexaChart) { dexaChart.destroy(); dexaChart = null; }
+  if (!scans.length) return;
+
+  const points = scans.map(s => ({
+    date: s.date + 'T12:00:00',
+    bf: s.bf, lean: s.lean, fat: s.fat
+  }));
+
+  const target = CFG.bfTarget || 12;
+
+  dexaChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Body Fat %',
+          data: points.map(p => ({ x: p.date, y: p.bf })),
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,.12)',
+          yAxisID: 'yBf',
+          tension: .3,
+          pointRadius: 4, pointHoverRadius: 6,
+          borderWidth: 2.5,
+          fill: false
+        },
+        {
+          label: 'Lean Mass',
+          data: points.map(p => ({ x: p.date, y: p.lean })),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,.12)',
+          yAxisID: 'yLbs',
+          tension: .3,
+          pointRadius: 3, pointHoverRadius: 5,
+          borderWidth: 2,
+          fill: false
+        },
+        {
+          label: 'Fat Mass',
+          data: points.map(p => ({ x: p.date, y: p.fat })),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,.12)',
+          yAxisID: 'yLbs',
+          tension: .3,
+          pointRadius: 3, pointHoverRadius: 5,
+          borderWidth: 2,
+          fill: false
+        },
+        {
+          label: `BF Target (${target}%)`,
+          data: points.map(p => ({ x: p.date, y: target })),
+          borderColor: 'rgba(239,68,68,.35)',
+          borderDash: [6,4],
+          yAxisID: 'yBf',
+          pointRadius: 0,
+          borderWidth: 1.5,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw.y;
+              if (ctx.dataset.label.startsWith('Body Fat') || ctx.dataset.label.startsWith('BF Target'))
+                return ' ' + ctx.dataset.label + ': ' + v.toFixed(1) + '%';
+              return ' ' + ctx.dataset.label + ': ' + v.toFixed(1) + ' lbs';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'month', tooltipFormat: 'MMM d, yyyy', displayFormats: { month: 'MMM yyyy' } },
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: '#94a3b8', maxRotation: 30 }
+        },
+        yBf: {
+          type: 'linear', position: 'left',
+          grid: { color: '#f1f5f9' },
+          ticks: { font: { size: 10 }, color: '#ef4444', callback: v => v + '%' },
+          title: { display: true, text: 'Body Fat %', font: { size: 10 }, color: '#ef4444' }
+        },
+        yLbs: {
+          type: 'linear', position: 'right',
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: '#10b981', callback: v => v + ' lbs' },
+          title: { display: true, text: 'Lean / Fat Mass', font: { size: 10 }, color: '#10b981' }
+        }
+      }
+    }
+  });
+}
+
+// ── Add/edit modal ──
+let dexaEditingDate = null;
+function openDexaForm(date) {
+  dexaEditingDate = date || null;
+  const title = document.getElementById('dexa-modal-title');
+  const overlay = document.getElementById('dexa-modal-overlay');
+  const fields = ['date','bf','fat','lean','total','bmc'];
+  fields.forEach(f => { const el = document.getElementById('dexa-f-' + f); if (el) el.value = ''; });
+  if (date) {
+    const s = getDexaScans().find(x => x.date === date);
+    if (s) {
+      title.textContent = 'Edit DEXA Scan';
+      document.getElementById('dexa-f-date').value  = s.date;
+      document.getElementById('dexa-f-bf').value    = s.bf;
+      document.getElementById('dexa-f-fat').value   = s.fat;
+      document.getElementById('dexa-f-lean').value  = s.lean;
+      document.getElementById('dexa-f-total').value = s.total;
+      document.getElementById('dexa-f-bmc').value   = s.bmc || '';
+    }
+  } else {
+    title.textContent = 'Add DEXA Scan';
+    document.getElementById('dexa-f-date').value = today();
+  }
+  overlay.classList.add('open');
+}
+function closeDexaForm(ev) {
+  if (ev && ev.target && ev.target.id !== 'dexa-modal-overlay' && ev.type === 'click') { /* outside click */ }
+  document.getElementById('dexa-modal-overlay').classList.remove('open');
+  dexaEditingDate = null;
+}
+function saveDexaForm() {
+  const date  = document.getElementById('dexa-f-date').value.trim();
+  const bf    = parseFloat(document.getElementById('dexa-f-bf').value);
+  const fat   = parseFloat(document.getElementById('dexa-f-fat').value);
+  const lean  = parseFloat(document.getElementById('dexa-f-lean').value);
+  const total = parseFloat(document.getElementById('dexa-f-total').value);
+  const bmcV  = document.getElementById('dexa-f-bmc').value;
+  const bmc   = bmcV ? parseFloat(bmcV) : null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('Date must be YYYY-MM-DD'); return; }
+  if (isNaN(bf) || isNaN(fat) || isNaN(lean) || isNaN(total)) { alert('Please fill BF%, fat, lean, and total.'); return; }
+  const scan = { date, bf, fat, lean, total };
+  if (bmc !== null && !isNaN(bmc)) scan.bmc = bmc;
+  // If editing and date changed, remove old entry
+  if (dexaEditingDate && dexaEditingDate !== date) deleteDexaScan(dexaEditingDate);
+  upsertDexaScan(scan);
+  closeDexaForm();
+  renderDexaSection();
+  // Also refresh DEXA countdown if this matches the last scan
+  if (typeof renderDexaCountdown === 'function') renderDexaCountdown();
+}
+function confirmDeleteDexa(date) {
+  if (!confirm('Delete DEXA scan from ' + fmtDateShort(date) + '?')) return;
+  deleteDexaScan(date);
+  renderDexaSection();
 }
 </script>
 </body>
