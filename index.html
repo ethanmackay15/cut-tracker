@@ -269,6 +269,41 @@
       font-size: 0.9rem; padding: 2px 6px; border-radius: 4px;
     }
     .dexa-del-btn:hover { color: #dc2626; background: rgba(220,38,38,.08); }
+
+    /* ───── All-habits celebration toast ───── */
+    .habit-celebration {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(.85);
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
+      color: #78350f;
+      border-radius: 24px; padding: 28px 40px;
+      box-shadow: 0 20px 60px -10px rgba(245,158,11,.5), 0 0 0 1px rgba(251,191,36,.4);
+      text-align: center;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity .35s ease, transform .5s cubic-bezier(.22,1.2,.36,1);
+      pointer-events: none;
+      min-width: 320px;
+    }
+    .habit-celebration.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .habit-celebration-emoji {
+      font-size: 3rem; line-height: 1; margin-bottom: 6px;
+      animation: habitBounce 1s ease-in-out infinite alternate;
+    }
+    .habit-celebration-title {
+      font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .habit-celebration-sub {
+      font-size: 0.85rem; font-weight: 500; color: #92400e; opacity: .9;
+    }
+    @keyframes habitBounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-8px); }
+    }
     .clr-green { color: var(--green); }
     .clr-red { color: var(--red); }
     .clr-orange { color: var(--orange); }
@@ -3319,8 +3354,43 @@ function renderHabits() {
 function toggleHabit(habit) {
   const dayData = getHabitsForDate(habitViewDate);
   const current = dayData[habit] || { done: false, notes: '', duration: null };
-  setHabitForDate(habitViewDate, habit, { done: !current.done });
+  const willBeDone = !current.done;
+  setHabitForDate(habitViewDate, habit, { done: willBeDone });
   renderHabits();
+  // Celebrate if this toggle completes all 4 core habits for today
+  if (willBeDone && habitViewDate === today()) {
+    checkCoreHabitsCelebration(habitViewDate);
+  }
+}
+
+// Fires a celebration the first time all 4 core habits are completed in a single day
+function checkCoreHabitsCelebration(date) {
+  const dayData = getHabitsForDate(date);
+  const allCoreDone = DEFAULT_HABITS.every(h => dayData[h] && dayData[h].done);
+  if (!allCoreDone) return;
+  const key = 'habit_celebration_' + date;
+  if (localStorage.getItem(key)) return; // already celebrated today
+  localStorage.setItem(key, '1');
+  celebrateAllHabitsDone();
+}
+
+function celebrateAllHabitsDone() {
+  fireworks();
+  // Big, warm, once-a-day toast
+  const t = document.createElement('div');
+  t.className = 'habit-celebration';
+  t.innerHTML = `
+    <div class="habit-celebration-emoji">🎉</div>
+    <div class="habit-celebration-title">All four habits done!</div>
+    <div class="habit-celebration-sub">Exercise. Meditation. Stretch. Vacuums. A full stack day.</div>
+  `;
+  document.body.appendChild(t);
+  // Animate in, then fade out
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 500);
+  }, 3800);
 }
 
 // ── Custom habits ────────────────────────────────────────────────────────────
