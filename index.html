@@ -1111,15 +1111,15 @@
   <!-- Bottom Tab Navigation (fixed) -->
   <div class="tabs">
     <button class="tab" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">🏋️</span>Weight</button>
-    <button class="tab tab-active" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍽</span>Food</button>
-    <button class="tab" id="tab-habits" onclick="switchTab('habits')"><span class="tab-icon">✓</span>Habits</button>
+    <button class="tab" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍽</span>Food</button>
+    <button class="tab tab-active" id="tab-habits" onclick="switchTab('habits')"><span class="tab-icon">✓</span>Habits</button>
     <button class="tab" id="tab-trends" onclick="switchTab('trends')"><span class="tab-icon">📊</span>Trends</button>
   </div>
 
   <!-- ════════════════════════════════════════════════
        PANEL: Food Log
   ════════════════════════════════════════════════ -->
-  <div class="panel active" id="panel-food">
+  <div class="panel" id="panel-food">
 
     <!-- Day navigator -->
     <div class="food-nav">
@@ -1363,7 +1363,7 @@
   <!-- ════════════════════════════════════════════════
        PANEL: Habits
   ════════════════════════════════════════════════ -->
-  <div class="panel" id="panel-habits">
+  <div class="panel active" id="panel-habits">
 
     <!-- Day navigator -->
     <div class="habit-nav">
@@ -2392,8 +2392,8 @@ function ensureTodayMealPlan() {
   renderWeight();
   window.addEventListener('resize', ()=>{ const d=load(); drawWeightChart(d); });
 
-  // Food is the default tab — render it on load
-  setTimeout(()=>{ populateFoodSelect(); renderFood(); }, 100);
+  // Habits is the default tab — render it on load
+  setTimeout(()=>{ renderHabits(); }, 100);
 
   // Load saved macro targets into settings fields (deferred so constants below are initialized first)
   setTimeout(loadTargetFields, 0);
@@ -4211,9 +4211,9 @@ function renderTrends() {
 
   const allWt   = weightData.entries.slice().sort((a,b) => a.date.localeCompare(b.date));
 
-  // All stats are framed as 7-day rolling (last 7 calendar days)
+  // All stats are framed as 7-day rolling (last 7 completed days, excluding today since today's totals aren't final)
   const todayStr  = today();
-  const last7days = Array.from({length: 7}, (_, i) => addDays(todayStr, -i));
+  const last7days = Array.from({length: 7}, (_, i) => addDays(todayStr, -(i + 1)));
   const last7food = last7days.filter(d => foodByDate[d]);
   const avgCal    = last7food.length ? Math.round(last7food.reduce((s,d) => s + foodByDate[d].cal, 0) / last7food.length) : null;
 
