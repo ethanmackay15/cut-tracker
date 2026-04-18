@@ -187,46 +187,31 @@
     }
     .stat-hero-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-weight:500; }
 
-    /* ───── DEXA countdown card ───── */
-    .dexa-card {
-      position: relative; overflow: hidden;
-      background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 50%, #fff 100%);
-      border-radius: 18px; padding: 18px 22px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(251, 191, 36, .35);
-      box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 20px -12px rgba(245, 158, 11, .2);
-      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    /* ───── Journey chip ───── */
+    .journey-chip {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 20px;
+      margin-bottom: 14px;
     }
-    .dexa-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:3px;
-      background: linear-gradient(90deg, #f59e0b, #fbbf24, #fde68a);
+    .journey-left { display: flex; align-items: baseline; gap: 8px; }
+    .journey-week {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;
+      color: var(--text);
     }
-    .dexa-icon { font-size: 1.6rem; line-height: 1; }
-    .dexa-text { flex: 1; min-width: 200px; }
-    .dexa-lbl {
-      font-size: 0.68rem; color: #92400e; text-transform: uppercase;
-      letter-spacing: .1em; font-weight: 700;
+    .journey-since {
+      font-size: 0.72rem; color: var(--muted); font-weight: 500;
     }
-    .dexa-headline {
-      font-size: 1.05rem; font-weight: 700; color: #1f2937; margin-top: 2px;
-      letter-spacing: -0.01em;
+    .journey-right {
+      text-align: right;
     }
-    .dexa-sub { font-size: 0.8rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
-    .dexa-countdown {
-      display: flex; align-items: baseline; gap: 6px;
-      background: linear-gradient(135deg, #d97706, #f59e0b);
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-      font-variant-numeric: tabular-nums;
+    .journey-target {
+      font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
+      color: #6366f1;
     }
-    .dexa-countdown-num { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
-    .dexa-countdown-unit { font-size: 0.9rem; font-weight: 700; }
-    .dexa-progress {
-      width: 100%; height: 5px; background: rgba(251, 191, 36, .18);
-      border-radius: 999px; overflow: hidden; margin-top: 10px;
-    }
-    .dexa-progress-fill {
-      height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);
-      border-radius: 999px; transition: width .4s ease;
+    .journey-target-lbl {
+      font-size: 0.62rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .08em; font-weight: 700; margin-top: 1px;
     }
 
     /* ───── DEXA trends stats strip ───── */
@@ -1125,8 +1110,8 @@
 
   <!-- Bottom Tab Navigation (fixed) -->
   <div class="tabs">
-    <button class="tab tab-active" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">⚖️</span>Weight</button>
-    <button class="tab" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍽</span>Food</button>
+    <button class="tab" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">🏋️</span>Weight</button>
+    <button class="tab tab-active" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍽</span>Food</button>
     <button class="tab" id="tab-habits" onclick="switchTab('habits')"><span class="tab-icon">✓</span>Habits</button>
     <button class="tab" id="tab-trends" onclick="switchTab('trends')"><span class="tab-icon">📊</span>Trends</button>
   </div>
@@ -1134,7 +1119,7 @@
   <!-- ════════════════════════════════════════════════
        PANEL: Food Log
   ════════════════════════════════════════════════ -->
-  <div class="panel" id="panel-food">
+  <div class="panel active" id="panel-food">
 
     <!-- Day navigator -->
     <div class="food-nav">
@@ -1208,7 +1193,7 @@
           <option>Breakfast</option>
           <option>Lunch</option>
           <option>Dinner</option>
-          <option>Evening Snack</option>
+          <option>Supper</option>
           <option>Snack</option>
         </select>
         <button class="btn" onclick="logFood()" style="flex-shrink:0;padding:9px 20px;width:auto">Add</button>
@@ -1284,20 +1269,18 @@
   </div>
 
   <!-- ════ PANEL: Daily Weight ════ -->
-  <div class="panel active" id="panel-weight">
+  <div class="panel" id="panel-weight">
 
-    <!-- DEXA countdown -->
-    <div class="dexa-card" id="dexa-card" style="display:none">
-      <div class="dexa-icon">🎯</div>
-      <div class="dexa-text">
-        <div class="dexa-lbl">Next DEXA</div>
-        <div class="dexa-headline" id="dexa-headline">—</div>
-        <div class="dexa-sub" id="dexa-sub">—</div>
-        <div class="dexa-progress"><div class="dexa-progress-fill" id="dexa-progress-fill" style="width:0%"></div></div>
+
+    <!-- Journey chip -->
+    <div class="journey-chip" id="journey-chip">
+      <div class="journey-left">
+        <span class="journey-week" id="journey-week">—</span>
+        <span class="journey-since" id="journey-since"></span>
       </div>
-      <div class="dexa-countdown">
-        <span class="dexa-countdown-num" id="dexa-days">—</span>
-        <span class="dexa-countdown-unit" id="dexa-days-unit">days</span>
+      <div class="journey-right">
+        <div class="journey-target" id="journey-target">12% BF</div>
+        <div class="journey-target-lbl">the vision</div>
       </div>
     </div>
 
@@ -1555,7 +1538,7 @@ const CFG_DEFAULTS = {
   goalRate:     0.65,
   bfTarget:     12,
   lastDexaDate: '2026-03-21',
-  nextDexaDate: '2026-05-01'
+  nextDexaDate: '2026-05-15'
 };
 // Mutable CFG — loaded from localStorage, falls back to defaults
 const CFG = (() => {
@@ -1861,6 +1844,20 @@ function renderWeight() {
   if (isSat(td) || previewSat) document.body.classList.add('sat');
   else document.body.classList.remove('sat');
 
+  // Journey chip — week number since start
+  const journeyStart = new Date('2026-03-15T12:00:00');
+  const todayDate = new Date(td + 'T12:00:00');
+  const daysSinceJourneyStart = Math.max(0, Math.floor((todayDate - journeyStart) / 86400000));
+  const weekNum = Math.floor(daysSinceJourneyStart / 7) + 1;
+  const jwEl = document.getElementById('journey-week');
+  const jsEl = document.getElementById('journey-since');
+  if (jwEl) jwEl.textContent = 'Week ' + weekNum;
+  if (jsEl) jsEl.textContent = 'since Mar 15';
+
+  // North star target from config
+  const jtEl = document.getElementById('journey-target');
+  if (jtEl) jtEl.textContent = (CFG.bfTarget || 12) + '% BF';
+
   // Stats — 3 focused cards: 7-day avg, total lost since start, avg loss/week since start
   const avg = currentAvg(data.entries);
   document.getElementById('s-avg').textContent = avg ? avg.toFixed(1)+' lbs' : '—';
@@ -1897,54 +1894,8 @@ function renderWeight() {
     document.getElementById('edit-link').style.display = 'none';
   }
 
-  renderDexaCountdown();
   drawWeightChart(data);
   renderHistory(data);
-}
-
-function renderDexaCountdown() {
-  const card = document.getElementById('dexa-card');
-  if (!card) return;
-  const next = CFG.nextDexaDate;
-  if (!next) { card.style.display = 'none'; return; }
-  card.style.display = 'flex';
-  const td = today();
-  const daysRemaining = daysBetween(td, next);
-  const headline = document.getElementById('dexa-headline');
-  const sub = document.getElementById('dexa-sub');
-  const num = document.getElementById('dexa-days');
-  const unit = document.getElementById('dexa-days-unit');
-  const fill = document.getElementById('dexa-progress-fill');
-
-  // Format target date nicely
-  const d = new Date(next + 'T12:00:00');
-  const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  headline.textContent = dateStr;
-
-  if (daysRemaining > 0) {
-    num.textContent = daysRemaining;
-    unit.textContent = daysRemaining === 1 ? 'day' : 'days';
-    sub.textContent = '';
-  } else if (daysRemaining === 0) {
-    num.textContent = '🎯';
-    unit.textContent = 'today';
-    sub.textContent = "Scan day! Let's see the numbers.";
-  } else {
-    num.textContent = Math.abs(daysRemaining);
-    unit.textContent = 'days ago';
-    sub.textContent = 'Time to schedule the next one.';
-  }
-
-  // Progress bar from lastDexaDate → nextDexaDate
-  const last = CFG.lastDexaDate;
-  if (last && daysRemaining >= 0) {
-    const total = Math.max(1, daysBetween(last, next));
-    const elapsed = Math.max(0, daysBetween(last, td));
-    const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
-    fill.style.width = pct.toFixed(1) + '%';
-  } else {
-    fill.style.width = daysRemaining < 0 ? '100%' : '0%';
-  }
 }
 
 function showForm() {
@@ -2376,6 +2327,24 @@ async function syncOnVisibility() {
   localStorage.setItem(MIG_KEY, '1');
 })();
 
+// Migrate "Evening Snack" → "Supper" in stored food entries
+(function migrateEveningSnackToSupper() {
+  const MIG_KEY = 'migration_eveningSnackToSupper_v1';
+  if (localStorage.getItem(MIG_KEY)) return;
+  try {
+    const raw = localStorage.getItem(FOOD_ENTRIES_KEY);
+    if (raw) {
+      const entries = JSON.parse(raw);
+      let changed = false;
+      entries.forEach(e => {
+        if (e.meal === 'Evening Snack') { e.meal = 'Supper'; changed = true; }
+      });
+      if (changed) localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(entries));
+    }
+  } catch(e) {}
+  localStorage.setItem(MIG_KEY, '1');
+})();
+
 // ─── Ensure today's meal plan exists (runs at boot, regardless of tab) ───────
 // foodInitDates — "plan entries exist in localStorage" (set once per day)
 // Sheets push is now manual via the "Sync to Sheets" button.
@@ -2415,7 +2384,7 @@ function ensureTodayMealPlan() {
     if (cached && Array.isArray(cached.foods) && cached.foods.length) {
       FOOD_DB = cached.foods;
       if (Array.isArray(cached.planTemplate) && cached.planTemplate.length) {
-        MEAL_PLAN_TEMPLATE = cached.planTemplate;
+        MEAL_PLAN_TEMPLATE = sanitizePlanTemplate(cached.planTemplate);
       }
     }
   } catch(e) {}
@@ -2423,8 +2392,8 @@ function ensureTodayMealPlan() {
   renderWeight();
   window.addEventListener('resize', ()=>{ const d=load(); drawWeightChart(d); });
 
-  // Draw weight chart on load since it's now the default tab
-  setTimeout(()=>{ const d=load(); drawWeightChart(d); }, 100);
+  // Food is the default tab — render it on load
+  setTimeout(()=>{ populateFoodSelect(); renderFood(); }, 100);
 
   // Load saved macro targets into settings fields (deferred so constants below are initialized first)
   setTimeout(loadTargetFields, 0);
@@ -2472,7 +2441,7 @@ function ensureTodayMealPlan() {
     if (libraryData && Array.isArray(libraryData.foods) && libraryData.foods.length) {
       FOOD_DB = libraryData.foods;
       if (Array.isArray(libraryData.planTemplate) && libraryData.planTemplate.length) {
-        MEAL_PLAN_TEMPLATE = libraryData.planTemplate;
+        MEAL_PLAN_TEMPLATE = sanitizePlanTemplate(libraryData.planTemplate);
       }
       // Update cache with fresh data from Sheets
       try { localStorage.setItem(FOOD_LIBRARY_CACHE_KEY, JSON.stringify({ foods: FOOD_DB, planTemplate: MEAL_PLAN_TEMPLATE })); } catch(e) {}
@@ -2518,18 +2487,18 @@ let FOOD_DB = [
   { id:'black-beans',    name:'Black Beans',           category:'Dinner',        serving:0.25, unit:'cups',    cal:80,  p:8.0, c:22.0, f:1.0  },
   { id:'beef-96',        name:'Beef 96/4',             category:'Dinner',        serving:112,  unit:'g',       cal:140, p:24.0,c:0.0,  f:4.5  },
   { id:'olive-oil',      name:'Olive Oil',             category:'Dinner',        serving:1,    unit:'tbsp',    cal:120, p:0.0, c:0.0,  f:14.0 },
-  // Evening Snack
-  { id:'spinach',        name:'Spinach',               category:'Evening Snack', serving:4,    unit:'cups',    cal:20,  p:2.0, c:3.0,  f:0.0  },
-  { id:'carrots',        name:'Carrots',               category:'Evening Snack', serving:85,   unit:'g',       cal:30,  p:0.0, c:7.0,  f:0.0  },
-  { id:'apple-envy',     name:'Apple (Envy)',          category:'Evening Snack', serving:182,  unit:'g',       cal:90,  p:0.0, c:25.0, f:0.0  },
-  { id:'sardines',       name:'Sardines',              category:'Evening Snack', serving:1,    unit:'tin',     cal:140, p:18.0,c:0.0,  f:8.0  },
-  { id:'sauerkraut',     name:'Sauerkraut',            category:'Evening Snack', serving:0.25, unit:'cups',    cal:5,   p:0.0, c:1.0,  f:0.0  },
-  { id:'mustard',        name:'Mustard',               category:'Evening Snack', serving:1,    unit:'tbsp',    cal:5,   p:0.0, c:4.0,  f:0.0  },
+  // Supper
+  { id:'spinach',        name:'Spinach',               category:'Supper', serving:4,    unit:'cups',    cal:20,  p:2.0, c:3.0,  f:0.0  },
+  { id:'carrots',        name:'Carrots',               category:'Supper', serving:85,   unit:'g',       cal:30,  p:0.0, c:7.0,  f:0.0  },
+  { id:'apple-gala',      name:'Apple (Gala)',          category:'Supper', serving:172,  unit:'g',       cal:98,  p:0.43,c:23.5, f:0.2  },
+  { id:'sardines',       name:'Sardines',              category:'Supper', serving:1,    unit:'tin',     cal:140, p:18.0,c:0.0,  f:8.0  },
+  { id:'sauerkraut',     name:'Sauerkraut',            category:'Supper', serving:0.25, unit:'cups',    cal:5,   p:0.0, c:1.0,  f:0.0  },
+  { id:'mustard',        name:'Mustard',               category:'Supper', serving:1,    unit:'tbsp',    cal:5,   p:0.0, c:4.0,  f:0.0  },
   // Snack
   { id:'trident',        name:'Trident White',         category:'Snack',         serving:2,    unit:'pieces',  cal:5,   p:0.0, c:2.0,  f:0.0  },
 ];
 
-const FOOD_TARGET_DEFAULTS = { cal:2401, protein:227, carbs:267, fat:77 };
+const FOOD_TARGET_DEFAULTS = { cal:2528, protein:254, carbs:273, fat:73 };
 
 let foodCurrentDate = today();
 
@@ -2539,9 +2508,9 @@ const MEAL_TIMES = {
   'Lunch': '11:00 AM',
   'Snack': '5:00 PM',
   'Dinner': '2:30 PM',
-  'Evening Snack': '7:00 PM'
+  'Supper': '7:00 PM'
 };
-const MEAL_CHRONO_ORDER = ['Breakfast','Lunch','Dinner','Snack','Evening Snack'];
+const MEAL_CHRONO_ORDER = ['Breakfast','Lunch','Dinner','Snack','Supper'];
 
 // Convert "7:30 AM" display time to "07:30" 24-hr format for sorting/storage
 function mealTimeToHHMM(timeStr) {
@@ -2609,16 +2578,38 @@ let MEAL_PLAN_TEMPLATE = [
   { food_id:'black-beans-d',     food_name:'Black Beans',           meal:'Dinner',        qty:0.5,    unit:'cups',   calories:160,   protein:16,    carbs:44,     fat:2     },
   { food_id:'beef-96-4-d',       food_name:'Beef 96/4',             meal:'Dinner',        qty:224,    unit:'g',      calories:280,   protein:48,    carbs:0,      fat:9     },
   { food_id:'olive-oil-d',       food_name:'Olive Oil',             meal:'Dinner',        qty:1,      unit:'tbsp',   calories:120,   protein:0,     carbs:0,      fat:14    },
-  // Evening Snack
-  { food_id:'spinach-es',        food_name:'Spinach',               meal:'Evening Snack', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
-  { food_id:'carrots-es',        food_name:'Carrots',               meal:'Evening Snack', qty:130,    unit:'g',      calories:45.9,  protein:0,     carbs:10.71,  fat:0     },
-  { food_id:'apple--envy--es',   food_name:'Apple (Envy)',          meal:'Evening Snack', qty:210,    unit:'g',      calories:103.5, protein:0,     carbs:28.75,  fat:0     },
-  { food_id:'sardines-es',       food_name:'Sardines',              meal:'Evening Snack', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
-  { food_id:'sauerkraut-es',     food_name:'Sauerkraut',            meal:'Evening Snack', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
-  { food_id:'mustard-es',        food_name:'Mustard',               meal:'Evening Snack', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
+  // Supper
+  { food_id:'spinach-es',        food_name:'Spinach',               meal:'Supper', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
+  { food_id:'carrots-es',        food_name:'Carrots',               meal:'Supper', qty:150,    unit:'g',      calories:52.8,  protein:0,     carbs:12.32,  fat:0     },
+  { food_id:'apple--gala--es',   food_name:'Apple (Gala)',          meal:'Supper', qty:250,    unit:'g',      calories:142.39,protein:0.62,  carbs:34.15,  fat:0.29  },
+  { food_id:'sardines-es',       food_name:'Sardines',              meal:'Supper', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
+  { food_id:'sauerkraut-es',     food_name:'Sauerkraut',            meal:'Supper', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
+  { food_id:'mustard-es',        food_name:'Mustard',               meal:'Supper', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
   // Snack
   { food_id:'trident-white-sn',  food_name:'Trident White',         meal:'Snack',         qty:8,      unit:'pieces', calories:20,    protein:0,     carbs:8,      fat:0     },
 ];
+
+// Foods explicitly removed from the meal plan — filter these out of Sheets-synced templates too
+const REMOVED_PLAN_FOODS = new Set(['Rice Cake', 'Apple (Envy)', 'Cottage Cheese (2%, Good Culture)']);
+
+// Meal name corrections for Sheets-synced templates (Supper items sometimes come back as Dinner/Evening Snack)
+const SUPPER_FOOD_IDS = new Set(['spinach-es','carrots-es','apple--envy--es','apple--gala--es','sardines-es','sauerkraut-es','mustard-es']);
+
+function sanitizePlanTemplate(template) {
+  return template
+    .filter(item => !REMOVED_PLAN_FOODS.has(item.food_name))
+    .map(item => {
+      // Fix meal name: items with -es suffix belong to Supper, not Dinner
+      if (SUPPER_FOOD_IDS.has(item.food_id) && item.meal !== 'Supper') {
+        return { ...item, meal: 'Supper' };
+      }
+      // Also fix any "Evening Snack" → "Supper"
+      if (item.meal === 'Evening Snack') {
+        return { ...item, meal: 'Supper' };
+      }
+      return item;
+    });
+}
 
 const FOOD_INIT_DATES_KEY = 'foodInitDates_v1';
 
@@ -2649,12 +2640,49 @@ function createPlanEntries(date) {
   }));
 }
 
+// ─── Migration: sync meal plan with spreadsheet (remove old foods, fix Supper, swap Apple) ──
+(function migrateMealPlanSync() {
+  const MIG_KEY = 'migration_mealPlanSync_v5';
+  if (localStorage.getItem(MIG_KEY)) return;
+  try {
+    const raw = localStorage.getItem(FOOD_ENTRIES_KEY);
+    if (raw) {
+      const entries = JSON.parse(raw);
+      let changed = false;
+      const filtered = entries.filter(e => {
+        // Remove explicitly excluded foods (Rice Cake, Apple (Envy), Cottage Cheese)
+        if (REMOVED_PLAN_FOODS.has(e.food_name)) { changed = true; return false; }
+        return true;
+      }).map(e => {
+        // Fix Supper items that were stored as Dinner (plan entries with -es suffix IDs)
+        const foodId = e.plan && e.id ? e.id.replace(/^plan-/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '') : '';
+        if (foodId && SUPPER_FOOD_IDS.has(foodId) && e.meal === 'Dinner') {
+          changed = true;
+          return { ...e, meal: 'Supper', time: mealTimeToHHMM(MEAL_TIMES['Supper'] || '7:00 PM') };
+        }
+        return e;
+      });
+      if (changed) localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(filtered));
+
+      // Reset today's init date so ensureTodayMealPlan re-creates plan with updated template
+      const td = today();
+      const initDates = getFoodInitDates();
+      if (initDates.has(td)) {
+        // Remove today's plan entries so they get re-created fresh
+        const withoutTodayPlan = filtered.filter(e => !(e.date === td && e.plan));
+        localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(withoutTodayPlan));
+        initDates.delete(td);
+        localStorage.setItem(FOOD_INIT_DATES_KEY, JSON.stringify([...initDates]));
+      }
+    }
+  } catch(e) {}
+  localStorage.setItem(MIG_KEY, '1');
+})();
+
 // ── Storage helpers ──────────────────────────────────────────────────────────
 function getFoodTargets() {
-  try {
-    const t = JSON.parse(localStorage.getItem(FOOD_TARGETS_KEY));
-    return t ? {...FOOD_TARGET_DEFAULTS,...t} : {...FOOD_TARGET_DEFAULTS};
-  } catch(e) { return {...FOOD_TARGET_DEFAULTS}; }
+  // Hardwired targets — consistent across all devices
+  return {...FOOD_TARGET_DEFAULTS};
 }
 function saveFoodTargets(t) { localStorage.setItem(FOOD_TARGETS_KEY, JSON.stringify(t)); }
 
@@ -2738,7 +2766,7 @@ function autoDetectMeal() {
   if (h < 14) return 'Lunch';
   if (h < 17) return 'Snack';
   if (h < 20) return 'Dinner';
-  return 'Evening Snack';
+  return 'Supper';
 }
 
 // All foods sorted alphabetically — built once, filtered on search
@@ -3083,18 +3111,23 @@ function renderFood() {
 
   // ── Build timeline groups sorted by actual time ──
   // Each entry gets a time key: its own `time` field, or fall back to MEAL_TIMES default
+  // Legacy meal name alias
+  const MEAL_ALIAS = { 'Evening Snack': 'Supper' };
+  function normMeal(m) { return MEAL_ALIAS[m] || m || 'Other'; }
+
   function entryTime(e) {
     if (e.time) return e.time; // "HH:MM" 24hr
-    return mealTimeToHHMM(MEAL_TIMES[e.meal] || '12:00 PM');
+    return mealTimeToHHMM(MEAL_TIMES[normMeal(e.meal)] || '12:00 PM');
   }
   // Group entries by (meal + time) so that e.g. two snacks at different times are separate groups
   const groups = []; // [{key, meal, time, entries}]
   const groupMap = {};
   dayEntries.forEach(e => {
+    const meal = normMeal(e.meal);
     const t = entryTime(e);
-    const key = (e.meal||'Other') + '|' + t;
+    const key = meal + '|' + t;
     if (!groupMap[key]) {
-      groupMap[key] = { key, meal: e.meal||'Other', time: t, entries: [] };
+      groupMap[key] = { key, meal, time: t, entries: [] };
       groups.push(groupMap[key]);
     }
     groupMap[key].entries.push(e);
@@ -4652,7 +4685,6 @@ function saveDexaForm() {
   closeDexaForm();
   renderDexaSection();
   // Also refresh DEXA countdown if this matches the last scan
-  if (typeof renderDexaCountdown === 'function') renderDexaCountdown();
 }
 function confirmDeleteDexa(date) {
   if (!confirm('Delete DEXA scan from ' + fmtDateShort(date) + '?')) return;
