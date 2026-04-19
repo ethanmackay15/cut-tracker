@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Power and Fitness" />
-  <link rel="apple-touch-icon" href="iconrecomp.png" />
+  <link rel="apple-touch-icon" href="appicon2.png" />
   <!-- Theme color for Android Chrome -->
   <meta name="theme-color" content="#1a1a2e" />
   <!-- Inter font -->
@@ -94,6 +94,7 @@
       font-size: 0.65rem; font-weight: 600; cursor: pointer; color: var(--muted);
       background: none; transition: color .2s;
       display: flex; flex-direction: column; align-items: center; gap: 2px;
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
     .tab .tab-icon { font-size: 1.3rem; line-height: 1; }
     .tab:hover { color: var(--text); }
@@ -175,7 +176,7 @@
     .stat-hero.accent-green::before { background: var(--green); }
     .stat-hero.accent-teal::before  { background: #06b6d4; }
     .stat-hero-val {
-      font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+      font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em;
       color: var(--primary);
       font-variant-numeric: tabular-nums;
     }
@@ -1021,7 +1022,7 @@
     }
 
   </style>
-<link rel="icon" type="image/png" href="iconrecomp.png">
+<link rel="icon" type="image/png" href="appicon2.png">
 </head>
 <body>
 <canvas id="confetti"></canvas>
@@ -1110,8 +1111,8 @@
 
   <!-- Bottom Tab Navigation (fixed) -->
   <div class="tabs">
-    <button class="tab" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">🏋️</span>Weight</button>
-    <button class="tab" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍽</span>Food</button>
+    <button class="tab" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">📋</span>Weight</button>
+    <button class="tab" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍗</span>Food</button>
     <button class="tab tab-active" id="tab-habits" onclick="switchTab('habits')"><span class="tab-icon">✓</span>Habits</button>
     <button class="tab" id="tab-trends" onclick="switchTab('trends')"><span class="tab-icon">📊</span>Trends</button>
   </div>
