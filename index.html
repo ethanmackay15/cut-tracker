@@ -316,12 +316,13 @@
     /* ───── Log form ───── */
     .fld { margin-bottom: 14px; }
     .fld label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-    input[type=number], textarea {
+    input[type=number], input[type=text].fld-input, textarea {
       width: 100%; padding: 10px 13px; border: 2px solid var(--border);
       border-radius: 10px; font-size: 1rem; font-family: inherit;
       background: #f8fafc; color: var(--text); outline: none; transition: border-color .2s;
+      box-sizing: border-box;
     }
-    input[type=number]:focus, textarea:focus { border-color: var(--primary); background: #fff; }
+    input[type=number]:focus, input[type=text].fld-input:focus, textarea:focus { border-color: var(--primary); background: #fff; }
     textarea { resize: vertical; min-height: 72px; }
     .btn {
       width: 100%; padding: 12px; border: none; border-radius: 10px;
@@ -649,6 +650,10 @@
     }
     .macro-top-vals .mtv-current { }
     .macro-top-vals .mtv-target { color:var(--muted); font-weight:500; font-size:0.95rem; }
+    @media(max-width:479px){
+      .macro-top-vals .mtv-current { display:block; }
+      .macro-top-vals .mtv-target { display:block; }
+    }
     .macro-top-bar-track {
       height:3px; background:var(--border); border-radius:2px;
       margin-top:5px; overflow:hidden;
@@ -999,6 +1004,25 @@
     .ibm-detail { font-size:0.68rem; color:var(--muted); }
 
     /* Habit sync bar */
+    /* Shared sync bar styles for Weight, Habits, Food */
+    .tab-sync-bar {
+      display:flex; align-items:center; gap:10px; padding:10px 16px; flex-wrap:wrap;
+      border-radius:var(--radius); background:var(--card);
+      box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:14px;
+    }
+    .tab-sync-bar .sync-label { flex:1 1 100%; font-size:0.84rem; color:var(--muted); min-width:0; }
+    @media(min-width:520px){ .tab-sync-bar .sync-label { flex:1 1 auto; } }
+    .tab-sync-bar .sync-label.dirty { color:var(--orange); font-weight:600; }
+    .btn-sync {
+      padding:8px 18px; border-radius:10px; font-size:0.84rem; font-weight:700;
+      cursor:pointer; border:none; transition:all 0.15s; white-space:nowrap;
+    }
+    .btn-sync.clean { background:var(--border); color:var(--muted); }
+    .btn-sync.dirty { background:var(--primary); color:#fff; }
+    .btn-sync.dirty:hover { background:var(--primary-2); }
+    .btn-sync.syncing { background:var(--yellow); color:#fff; cursor:wait; }
+    .btn-sync.refresh { background:#e0e7ff; color:#4338ca; }
+    /* Legacy aliases */
     .habit-sync-bar {
       display:flex; align-items:center; gap:10px; padding:10px 16px;
       border-radius:var(--radius); background:var(--card);
@@ -1159,10 +1183,10 @@
     </div>
 
     <!-- Sync to Sheets button -->
-    <div class="food-sync-bar" id="food-sync-bar">
+    <div class="tab-sync-bar" id="food-sync-bar">
       <span class="sync-label" id="food-sync-label">In sync with Google Sheets</span>
-      <button class="btn-sync-food clean" id="food-sync-btn" onclick="pushFoodToSheets()">Sync to Sheets</button>
-      <button class="btn-sync-food clean" id="food-refresh-btn" onclick="refreshFoodFromSheets()" style="margin-left:6px;background:#e0e7ff;color:#4338ca">Refresh from Sheets</button>
+      <button class="btn-sync clean" id="food-sync-btn" onclick="pushFoodToSheets()">Sync to Sheets</button>
+      <button class="btn-sync refresh" id="food-refresh-btn" onclick="refreshFoodFromSheets()">Refresh from Sheets</button>
     </div>
 
     <!-- Log food form -->
@@ -1285,6 +1309,12 @@
       </div>
     </div>
 
+    <!-- Weight sync bar -->
+    <div class="tab-sync-bar" id="weight-sync-bar">
+      <span class="sync-label" id="weight-sync-label">In sync with Google Sheets</span>
+      <button class="btn-sync refresh" id="weight-refresh-btn" onclick="refreshWeightFromSheets()">Refresh from Sheets</button>
+    </div>
+
     <!-- Stats (focused: 7-day avg, total lost, avg loss/week since start) -->
     <div class="stats-hero">
       <div class="stat-hero">
@@ -1302,28 +1332,31 @@
     </div>
 
     <!-- Two-col -->
-    <div class="two-col" style="align-items:start">
-      <div class="card">
-        <h2 id="log-heading">Log Today</h2>
-        <div id="log-form">
-          <div class="fld">
+    <div class="card" style="margin-bottom:18px">
+      <h2 id="log-heading">Log Today</h2>
+      <div id="log-form">
+        <div style="display:flex;gap:12px;align-items:flex-end">
+          <div class="fld" style="flex:0 0 140px;margin-bottom:0">
             <label for="w-input">Weight (lbs)</label>
-            <input type="number" id="w-input" step="0.1" min="100" max="400" placeholder="e.g. 190.8" />
+            <input type="number" id="w-input" step="0.1" min="100" max="400" placeholder="e.g. 190.8"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();logEntry();}" />
           </div>
-          <div class="fld">
+          <div class="fld" style="flex:1;margin-bottom:0">
             <label for="n-input">Notes (optional)</label>
-            <textarea id="n-input" placeholder="How are you feeling? Slept well? Ate salty last night?"></textarea>
+            <input type="text" id="n-input" class="fld-input" placeholder="How are you feeling? Slept well? Ate salty last night?"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();logEntry();}" />
           </div>
-          <button class="btn" onclick="logEntry()">Save Weight</button>
         </div>
-        <div class="logged-ok" id="logged-ok" style="display:none"></div>
-        <span class="edit-link" id="edit-link" style="display:none" onclick="showForm()">Edit today's entry</span>
+        <button class="btn" onclick="logEntry()" style="margin-top:12px">Sync to Sheets</button>
       </div>
+      <div class="logged-ok" id="logged-ok" style="display:none"></div>
+      <span class="edit-link" id="edit-link" style="display:none" onclick="showForm()">Edit today's entry</span>
+    </div>
 
-      <div class="card">
-        <h2>Weight Trend</h2>
-        <div class="chart-wrap"><canvas id="chart-weight" height="200"></canvas></div>
-      </div>
+    <!-- Weight Trend — full width, prominent -->
+    <div class="card" style="margin-bottom:18px">
+      <h2>Weight Trend</h2>
+      <div class="chart-wrap"><canvas id="chart-weight" height="320"></canvas></div>
     </div>
 
     <!-- History -->
@@ -1374,9 +1407,10 @@
     </div>
 
     <!-- Sync bar -->
-    <div class="habit-sync-bar">
+    <div class="tab-sync-bar">
       <span class="sync-label" id="habit-sync-label">All synced</span>
-      <button class="btn-sync-habits clean" id="habit-sync-btn" onclick="pushHabitsToSheets()">Sync to Sheets</button>
+      <button class="btn-sync clean" id="habit-sync-btn" onclick="pushHabitsToSheets()">Sync to Sheets</button>
+      <button class="btn-sync refresh" id="habit-refresh-btn" onclick="refreshHabitsFromSheets()">Refresh from Sheets</button>
     </div>
 
     <!-- Today's habits -->
@@ -1696,6 +1730,76 @@ async function pullFromSheets() {
   } catch(err) { updateSyncUI('red','Could not reach Google Sheets'); return null; }
 }
 
+// ─── Weight manual sync (matches Food/Habits pattern) ─────────────────────
+const weightDirtyDates = new Set();
+
+function markWeightDirty(date) {
+  if (date) weightDirtyDates.add(date);
+  updateWeightSyncUI();
+}
+
+function updateWeightSyncUI() {
+  const label = document.getElementById('weight-sync-label');
+  const btn = document.getElementById('weight-sync-btn');
+  if (!label || !btn) return;
+  if (weightDirtyDates.size > 0) {
+    label.textContent = weightDirtyDates.size + ' unsaved change' + (weightDirtyDates.size > 1 ? 's' : '');
+    label.className = 'sync-label dirty';
+    btn.className = 'btn-sync dirty';
+  } else {
+    label.textContent = 'In sync with Google Sheets';
+    label.className = 'sync-label';
+    btn.className = 'btn-sync clean';
+  }
+}
+
+async function manualPushWeight() {
+  const url = getSheetsUrl();
+  if (!url) { showToast('No Sheets URL configured'); return; }
+  const btn = document.getElementById('weight-sync-btn');
+  const label = document.getElementById('weight-sync-label');
+  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync syncing'; }
+  if (label) { label.textContent = 'Pushing to Google Sheets…'; label.className = 'sync-label'; }
+  try {
+    const data = load();
+    await pushToSheets(data.entries);
+    weightDirtyDates.clear();
+    updateWeightSyncUI();
+    if (btn) btn.textContent = 'Sync to Sheets';
+    showToast('✓ Weight synced to Google Sheets');
+  } catch(e) {
+    if (label) { label.textContent = 'Sync failed — try again'; label.className = 'sync-label dirty'; }
+    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync dirty'; }
+    showToast('Sync failed');
+  }
+}
+
+async function refreshWeightFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) { showToast('No Sheets URL configured'); return; }
+  if (weightDirtyDates.size > 0 && !confirm(
+    `You have ${weightDirtyDates.size} unsaved local change(s). ` +
+    'Refreshing will merge remote data into local. Continue?'
+  )) return;
+  const btn = document.getElementById('weight-refresh-btn');
+  if (btn) { btn.textContent = 'Refreshing…'; btn.disabled = true; }
+  try {
+    const remote = await pullFromSheets();
+    if (!remote) throw new Error('Pull failed');
+    const local = load();
+    local.entries = mergeEntries(local.entries, remote);
+    save(local);
+    weightDirtyDates.clear();
+    updateWeightSyncUI();
+    renderWeight();
+    showToast('✓ Weight refreshed from Google Sheets');
+  } catch(e) {
+    showToast('Refresh failed — your local data was not changed');
+  } finally {
+    if (btn) { btn.textContent = 'Refresh from Sheets'; btn.disabled = false; }
+  }
+}
+
 function mergeEntries(local, remote) {
   const map = {};
   local.forEach(e=>{if(e.date&&e.weight)map[e.date]=e;});
@@ -1916,14 +2020,47 @@ function logEntry() {
   const notes = document.getElementById('n-input').value.trim();
   if (!w || isNaN(w) || w<100 || w>400) { alert('Please enter a valid weight (100–400 lbs).'); return; }
   const data = load();
+  const prevAvg = currentAvg(data.entries);
   data.entries = data.entries.filter(e=>e.date!==td);
   const newEntry = {date:td, weight:w, notes};
   data.entries.push(newEntry);
   data.entries.sort((a,b)=>a.date.localeCompare(b.date));
   save(data);
+  // Save + sync in one step
   pushToSheets([newEntry]);
-  if (isSat(td)) fireworks();
+  weightDirtyDates.delete(td);
+  updateWeightSyncUI();
   renderWeight();
+  // Animate the stat cards counting up
+  const newAvg = currentAvg(data.entries);
+  if (newAvg != null) {
+    animateNumber('s-avg', prevAvg || newAvg, newAvg, v => v.toFixed(1) + ' lbs');
+    const lost = CFG.startWeight - newAvg;
+    const prevLost = prevAvg != null ? CFG.startWeight - prevAvg : lost;
+    animateNumber('s-lost', prevLost, lost, v => (v>=0?'−':'+') + Math.abs(v).toFixed(1) + ' lbs');
+    const daysSinceStart = Math.max(1, daysBetween(CFG.startDate, td));
+    const weeksSinceStart = daysSinceStart / 7;
+    const perWeek = lost / weeksSinceStart;
+    const prevPerWeek = prevLost / weeksSinceStart;
+    animateNumber('s-avg-rate', prevPerWeek, perWeek, v => (v>=0?'−':'+') + Math.abs(v).toFixed(2) + ' lbs');
+  }
+}
+
+function animateNumber(elId, from, to, formatter, duration) {
+  duration = duration || 800;
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = performance.now();
+  el.style.transition = 'transform 0.3s ease';
+  el.style.transform = 'scale(1.15)';
+  setTimeout(() => { el.style.transform = 'scale(1)'; }, 300);
+  (function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const val = from + (to - from) * ease;
+    el.textContent = formatter(val);
+    if (t < 1) requestAnimationFrame(tick);
+  })(start);
 }
 
 // ─── Weight Chart (Chart.js) ─────────────────────────────────────────────────
@@ -2111,7 +2248,7 @@ function saveDate(oldDate) {
   const entry = data.entries.find(e=>e.date===oldDate);
   if (entry) entry.date=newDate;
   data.entries.sort((a,b)=>a.date.localeCompare(b.date));
-  save(data); pushDateChangeToSheets(oldDate,newDate); renderWeight();
+  save(data); markWeightDirty(newDate); renderWeight();
 }
 function editNote(date) {
   const data=load(), entry=data.entries.find(e=>e.date===date);
@@ -2125,12 +2262,12 @@ function editNote(date) {
 function saveNote(date) {
   const input=document.getElementById('note-input-'+date); if(!input) return;
   const data=load(), entry=data.entries.find(e=>e.date===date);
-  if(entry){entry.notes=input.value.trim();save(data);pushToSheets([entry]);}
+  if(entry){entry.notes=input.value.trim();save(data);markWeightDirty(date);}
   renderWeight();
 }
 function deleteEntry(date) {
   if (!confirm(`Delete weight entry for ${fmtDate(date)}?`)) return;
-  const data=load(); data.entries=data.entries.filter(e=>e.date!==date); save(data); pushDeleteToSheets(date); renderWeight();
+  const data=load(); data.entries=data.entries.filter(e=>e.date!==date); save(data); markWeightDirty(date); renderWeight();
 }
 
 // ─── History ──────────────────────────────────────────────────────────────────
@@ -2139,7 +2276,7 @@ function renderHistory(data) {
   const entries = [...data.entries].filter(e=>e.weight).reverse();
   if (!entries.length) { el.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px 0">No entries yet — start logging!</p>'; return; }
   const all = data.entries;
-  let html = `<table><thead><tr><th>Date</th><th>Weight</th><th>7-Day Avg</th><th>vs Prior</th><th>Notes</th><th></th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>Date</th><th>Weight</th><th>vs Prior</th><th>7-Day Avg</th><th>Notes</th><th></th></tr></thead><tbody>`;
   entries.forEach(e=>{
     const sat=isSat(e.date);
     const avg=rollingAvg(all,e.date);
@@ -2150,8 +2287,8 @@ function renderHistory(data) {
     html+=`<tr class="${sat?'sat-row':''}">
       <td id="date-${e.date}">${fmtDate(e.date)}${sat?'<span class="tag">🎉 treat</span>':''}</td>
       <td><strong>${e.weight}</strong> lbs</td>
-      <td>${avg?avg.toFixed(1)+' lbs':'—'}</td>
       <td>${dStr}</td>
+      <td>${avg?avg.toFixed(1)+' lbs':'—'}</td>
       <td class="note-cell" id="note-${e.date}">${e.notes?esc(e.notes):''}</td>
       <td style="white-space:nowrap">
         <button class="btn-edit" onclick="editDate('${e.date}')" title="Edit date">📅</button>
@@ -2582,7 +2719,7 @@ let MEAL_PLAN_TEMPLATE = [
   // Supper
   { food_id:'spinach-es',        food_name:'Spinach',               meal:'Supper', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
   { food_id:'carrots-es',        food_name:'Carrots',               meal:'Supper', qty:150,    unit:'g',      calories:52.8,  protein:0,     carbs:12.32,  fat:0     },
-  { food_id:'apple--gala--es',   food_name:'Apple (Gala)',          meal:'Supper', qty:250,    unit:'g',      calories:142.39,protein:0.62,  carbs:34.15,  fat:0.29  },
+  { food_id:'apple--gala--es',   food_name:'Apple (Gala)',          meal:'Supper', qty:250,    unit:'g',      calories:142.394,protein:0.625, carbs:34.146, fat:0.291 },
   { food_id:'sardines-es',       food_name:'Sardines',              meal:'Supper', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
   { food_id:'sauerkraut-es',     food_name:'Sauerkraut',            meal:'Supper', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
   { food_id:'mustard-es',        food_name:'Mustard',               meal:'Supper', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
@@ -2643,7 +2780,7 @@ function createPlanEntries(date) {
 
 // ─── Migration: sync meal plan with spreadsheet (remove old foods, fix Supper, swap Apple) ──
 (function migrateMealPlanSync() {
-  const MIG_KEY = 'migration_mealPlanSync_v5';
+  const MIG_KEY = 'migration_mealPlanSync_v6';
   if (localStorage.getItem(MIG_KEY)) return;
   try {
     const raw = localStorage.getItem(FOOD_ENTRIES_KEY);
@@ -3466,12 +3603,12 @@ function updateFoodSyncUI() {
     label.textContent = n === 1 ? 'Unsaved changes for 1 day' : `Unsaved changes for ${n} days`;
     label.className   = 'sync-label dirty';
     btn.textContent   = 'Sync to Sheets';
-    btn.className     = 'btn-sync-food dirty';
+    btn.className     = 'btn-sync dirty';
   } else {
     label.textContent = 'In sync with Google Sheets';
     label.className   = 'sync-label';
     btn.textContent   = 'Sync to Sheets';
-    btn.className     = 'btn-sync-food clean';
+    btn.className     = 'btn-sync clean';
   }
 }
 
@@ -3481,7 +3618,7 @@ async function pushFoodToSheets() {
   if (!foodDirtyDates.size) { showToast('Nothing to sync'); return; }
   const btn = document.getElementById('food-sync-btn');
   const label = document.getElementById('food-sync-label');
-  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync-food syncing'; }
+  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync syncing'; }
   if (label) { label.textContent = 'Pushing to Google Sheets…'; label.className = 'sync-label'; }
   try {
     // Replace all entries for edited dates — this handles additions, edits, AND deletions
@@ -3494,7 +3631,7 @@ async function pushFoodToSheets() {
     showToast('✓ Food log synced to Google Sheets');
   } catch(e) {
     if (label) { label.textContent = 'Sync failed — try again'; label.className = 'sync-label dirty'; }
-    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync-food dirty'; }
+    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync dirty'; }
     showToast('Sync failed');
   }
 }
@@ -4047,12 +4184,12 @@ function updateHabitSyncUI() {
     label.textContent = `${habitDirtyDates.size} day${habitDirtyDates.size>1?'s':''} to sync`;
     label.className = 'sync-label dirty';
     btn.textContent = 'Sync to Sheets';
-    btn.className = 'btn-sync-habits dirty';
+    btn.className = 'btn-sync dirty';
   } else {
     label.textContent = 'All synced';
     label.className = 'sync-label';
     btn.textContent = 'Sync to Sheets';
-    btn.className = 'btn-sync-habits clean';
+    btn.className = 'btn-sync clean';
   }
 }
 
@@ -4062,7 +4199,7 @@ async function pushHabitsToSheets() {
   if (!habitDirtyDates.size) { showToast('Nothing to sync'); return; }
   const btn = document.getElementById('habit-sync-btn');
   const label = document.getElementById('habit-sync-label');
-  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync-habits syncing'; }
+  if (btn) { btn.textContent = 'Syncing…'; btn.className = 'btn-sync syncing'; }
   if (label) { label.textContent = 'Pushing to Google Sheets…'; label.className = 'sync-label'; }
   try {
     const dates = [...habitDirtyDates];
@@ -4089,8 +4226,35 @@ async function pushHabitsToSheets() {
     showToast('✓ Habits synced to Google Sheets');
   } catch(e) {
     if (label) { label.textContent = 'Sync failed — try again'; label.className = 'sync-label dirty'; }
-    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync-habits dirty'; }
+    if (btn) { btn.textContent = 'Retry Sync'; btn.className = 'btn-sync dirty'; }
     showToast('Sync failed');
+  }
+}
+
+async function refreshHabitsFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) { showToast('No Sheets URL configured'); return; }
+  if (habitDirtyDates.size > 0 && !confirm(
+    `You have unsaved local changes for ${habitDirtyDates.size} day(s). ` +
+    'Refreshing will replace local habits data with Google Sheets. Continue?'
+  )) return;
+  const btn = document.getElementById('habit-refresh-btn');
+  if (btn) { btn.textContent = 'Refreshing…'; btn.disabled = true; }
+  try {
+    const remote = await pullHabitsFromSheets();
+    if (!remote) throw new Error('Pull failed');
+    // Merge remote into local (remote wins for existing entries)
+    const local = getHabitsData();
+    const merged = mergeHabitsData(local, remote);
+    saveHabitsData(merged);
+    habitDirtyDates.clear();
+    updateHabitSyncUI();
+    renderHabits();
+    showToast('✓ Habits refreshed from Google Sheets');
+  } catch(e) {
+    showToast('Refresh failed — your local data was not changed');
+  } finally {
+    if (btn) { btn.textContent = 'Refresh from Sheets'; btn.disabled = false; }
   }
 }
 
