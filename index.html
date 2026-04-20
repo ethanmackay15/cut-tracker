@@ -5043,6 +5043,23 @@ function logRunForDate(date) {
 }
 
 // Calculate pace per mile from distance (mi) and time string (mm:ss or m:ss)
+// Normalize time from Sheets Date string to mm:ss
+function rcNormalizeTime(t) {
+  if (!t) return '';
+  // Already mm:ss or h:mm:ss? keep it
+  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(t.trim())) return t.trim();
+  // Google Sheets Date object stringified: "Sat Dec 30 1899 09:13:00 GMT..."
+  const m = t.match(/(\d{1,2}):(\d{2}):(\d{2})/);
+  if (m) {
+    const hrs = parseInt(m[1]) || 0;
+    const mins = parseInt(m[2]) || 0;
+    const secs = parseInt(m[3]) || 0;
+    if (hrs > 0) return hrs + ':' + String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+    return mins + ':' + String(secs).padStart(2,'0');
+  }
+  return t.trim();
+}
+
 function rcCalcPace(distance, timeStr) {
   if (!distance || distance <= 0 || !timeStr) return '';
   const parts = timeStr.split(':');
@@ -5278,30 +5295,48 @@ async function pushRCToSheets() {
 
 async function pullRCFromSheets() {
   const url = getSheetsUrl();
-  if (!url) return;
+  if (!url) { console.log('RC pull: no sheets URL'); return; }
   try {
     const res = await fetch(url + '?type=runChallenge');
-    const result = await res.json();
-    if (!result.ok || !Array.isArray(result.entries)) return;
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(pe) { console.warn('RC pull: JSON parse fail'); return; }
+    if (!result.ok || !Array.isArray(result.entries) || !result.entries.length) return;
     const data = getRCData();
-    // If we have a startDate from the sheet and local doesn't have one, adopt it
-    if (result.startDate && !data.startDate) {
-      data.startDate = result.startDate;
+
+    // Determine startDate: prefer explicit from Sheet, else compute from day 1 entry
+    if (!data.startDate) {
+      if (result.startDate) {
+        data.startDate = normalizeDate(result.startDate);
+      } else {
+        // Find the entry with day=1, or use the earliest date
+        const day1 = result.entries.find(e => Number(e.day) === 1);
+        if (day1 && day1.date) {
+          data.startDate = normalizeDate(day1.date);
+        } else {
+          // Fall back to earliest date
+          const dates = result.entries.map(e => normalizeDate(e.date)).filter(Boolean).sort();
+          if (dates.length) data.startDate = dates[0];
+        }
+      }
     }
+
     result.entries.forEach(e => {
       if (!e.date) return;
-      if (e.date) e.date = normalizeDate(e.date);
-      if (e.done === 'TRUE' || e.done === true) {
+      e.date = normalizeDate(e.date);
+      if (String(e.done).toUpperCase() === 'TRUE' || e.done === true) {
         data.entries[e.date] = {
           done: true,
           distance: Number(e.distance) || 0,
-          time: String(e.time || '')
+          time: rcNormalizeTime(String(e.time || ''))
         };
       }
     });
     saveRCData(data);
     renderRunChallenge();
-  } catch(e) { /* silent fail on pull */ }
+  } catch(e) {
+    console.warn('RC pull error:', e);
+  }
 }
 
 // Render on habits tab load
