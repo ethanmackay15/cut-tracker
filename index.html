@@ -3824,7 +3824,7 @@ function mergeFoodEntries(local, remote) {
 const STEPS_KEY = 'steps_tracker_v1';
 const HABITS_KEY = 'habits_tracker_v1';
 const HABITS_LIST_KEY = 'habits_list_v1';
-const DEFAULT_HABITS = ['exercise', 'meditation', 'stretch', 'vacuums'];
+const DEFAULT_HABITS = ['exercise', 'meditation', 'stretch', 'vacuums', 'water'];
 let habitViewDate = today();
 const habitDirtyDates = new Set();
 
@@ -3943,8 +3943,8 @@ function celebrateAllHabitsDone() {
   t.className = 'habit-celebration';
   t.innerHTML = `
     <div class="habit-celebration-emoji">🎉</div>
-    <div class="habit-celebration-title">All four habits done!</div>
-    <div class="habit-celebration-sub">Exercise. Meditation. Stretch. Vacuums. A full stack day.</div>
+    <div class="habit-celebration-title">All five habits done!</div>
+    <div class="habit-celebration-sub">Exercise. Meditation. Stretch. Vacuums. Water. A full stack day.</div>
   `;
   document.body.appendChild(t);
   // Animate in, then fade out
@@ -4018,6 +4018,7 @@ const HABIT_7D_GOALS = {
   'meditation': 4,
   'stretch': 2,
   'vacuums': 2,
+  'water': 5,
 };
 const DEFAULT_7D_GOAL = 3;
 
