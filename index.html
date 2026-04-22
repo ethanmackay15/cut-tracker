@@ -2828,6 +2828,21 @@ const REMOVED_PLAN_FOODS = new Set(['Rice Cake', 'Apple (Envy)', 'Cottage Cheese
 // Meal name corrections for Sheets-synced templates (Supper items sometimes come back as Dinner/Evening Snack)
 const SUPPER_FOOD_IDS = new Set(['spinach-es','carrots-es','apple--envy--es','apple--gala--es','sardines-es','sauerkraut-es','mustard-es']);
 
+// Known supper food names — used to fix meal assignment on ANY entry (not just plan entries)
+const SUPPER_FOOD_NAMES = new Set(['Spinach','Carrots','Apple (Gala)','Apple (Envy)','Sardines','Sauerkraut','Mustard']);
+const SUPPER_FOOD_NAMES_LOWER = new Set([...SUPPER_FOOD_NAMES].map(n => n.toLowerCase()));
+
+// Normalize a single food entry's meal field: if it's a known supper food stored as Dinner/Evening Snack, fix it
+function normalizeEntryMeal(e) {
+  if (e.meal === 'Supper') return e;
+  if (e.meal !== 'Dinner' && e.meal !== 'Evening Snack') return e;
+  const name = (e.food_name || '').toLowerCase();
+  if (SUPPER_FOOD_NAMES_LOWER.has(name)) {
+    return { ...e, meal: 'Supper', time: mealTimeToHHMM(MEAL_TIMES['Supper'] || '7:00 PM') };
+  }
+  return e;
+}
+
 function sanitizePlanTemplate(template) {
   return template
     .filter(item => !REMOVED_PLAN_FOODS.has(item.food_name))
@@ -2874,8 +2889,9 @@ function createPlanEntries(date) {
 }
 
 // ─── Migration: sync meal plan with spreadsheet (remove old foods, fix Supper, swap Apple) ──
+// v7: Now fixes ALL entries (not just plan entries) using food-name matching via normalizeEntryMeal
 (function migrateMealPlanSync() {
-  const MIG_KEY = 'migration_mealPlanSync_v6';
+  const MIG_KEY = 'migration_mealPlanSync_v7';
   if (localStorage.getItem(MIG_KEY)) return;
   try {
     const raw = localStorage.getItem(FOOD_ENTRIES_KEY);
@@ -2887,7 +2903,10 @@ function createPlanEntries(date) {
         if (REMOVED_PLAN_FOODS.has(e.food_name)) { changed = true; return false; }
         return true;
       }).map(e => {
-        // Fix Supper items that were stored as Dinner (plan entries with -es suffix IDs)
+        // Fix ALL supper items stored as Dinner or Evening Snack — by food name, not just plan IDs
+        const fixed = normalizeEntryMeal(e);
+        if (fixed !== e) { changed = true; return fixed; }
+        // Also fix via plan food_id for backwards compat
         const foodId = e.plan && e.id ? e.id.replace(/^plan-/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '') : '';
         if (foodId && SUPPER_FOOD_IDS.has(foodId) && e.meal === 'Dinner') {
           changed = true;
@@ -2997,9 +3016,9 @@ function autoDetectMeal() {
   const h = new Date().getHours();
   if (h < 11) return 'Breakfast';
   if (h < 14) return 'Lunch';
-  if (h < 17) return 'Snack';
-  if (h < 20) return 'Dinner';
-  return 'Supper';
+  if (h < 17) return 'Dinner';   // 2–5pm (Dinner is at 2:30 PM)
+  if (h < 19) return 'Snack';    // 5–7pm (Snack is at 5:00 PM)
+  return 'Supper';               // 7pm+  (Supper is at 7:00 PM)
 }
 
 // All foods sorted alphabetically — built once, filtered on search
@@ -3784,7 +3803,8 @@ async function pullFoodFromSheets() {
     if (!data.ok || !Array.isArray(data.entries)) return null;
     // Normalize dates — Sheets may return full Date strings instead of YYYY-MM-DD
     data.entries.forEach(e => { if (e.date) e.date = normalizeDate(e.date); });
-    return data.entries.filter(e => e.date); // drop entries with unparseable dates
+    // Normalize meal names — Supper items sometimes come back as Dinner/Evening Snack from Sheets
+    return data.entries.filter(e => e.date).map(normalizeEntryMeal);
   } catch(e) { return null; }
 }
 
@@ -3804,17 +3824,20 @@ function normFoodName(n) { return (n||'').toLowerCase().replace(/&/g,' and ').re
 function mergeFoodEntries(local, remote) {
   const map = {};
   const seen = new Set(); // track date|meal|food to catch ID-mismatch dupes
+  // Normalize meals before merging to prevent dupes from meal-name mismatches (e.g. Dinner vs Supper)
   local.forEach(e => {
-    map[e.id] = e;
-    const foodKey = e.food_id || normFoodName(e.food_name);
-    seen.add(e.date + '|' + e.meal + '|' + foodKey);
+    const ne = normalizeEntryMeal(e);
+    map[ne.id] = ne;
+    const foodKey = ne.food_id || normFoodName(ne.food_name);
+    seen.add(ne.date + '|' + ne.meal + '|' + foodKey);
   });
   // Remote fills in entries not present locally (don't overwrite local edits)
   // Also skip if same date+meal+food already exists under a different ID
   remote.forEach(e => {
-    const foodKey = e.food_id || normFoodName(e.food_name);
-    const key = e.date + '|' + e.meal + '|' + foodKey;
-    if (!map[e.id] && !seen.has(key)) { map[e.id] = e; seen.add(key); }
+    const ne = normalizeEntryMeal(e);
+    const foodKey = ne.food_id || normFoodName(ne.food_name);
+    const key = ne.date + '|' + ne.meal + '|' + foodKey;
+    if (!map[ne.id] && !seen.has(key)) { map[ne.id] = ne; seen.add(key); }
   });
   return Object.values(map);
 }
