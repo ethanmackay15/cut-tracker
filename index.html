@@ -1476,6 +1476,15 @@
       </label>
     </div>
 
+    <!-- Steps Import -->
+    <div class="backup-bar" style="margin-top:8px;">
+      <span><strong>🏃 Steps data</strong> — <span id="steps-import-label">import from Apple Health</span></span>
+      <label class="btn-sm btn-import" style="cursor:pointer">
+        ⬆ Import steps JSON
+        <input type="file" id="steps-import-file" accept=".json" onchange="importStepsJSON(event)" style="display:none" />
+      </label>
+    </div>
+
     <!-- Inspiration -->
     <div class="inspo">
       <img src="10256345_1003947152951883_5404304817066547595_o.webp" alt="Beach" />
@@ -1716,12 +1725,12 @@ function getDexaScans() {
     const stored = JSON.parse(localStorage.getItem(DEXA_KEY) || 'null');
     if (Array.isArray(stored)) return stored;
   } catch {}
-  localStorage.setItem(DEXA_KEY, JSON.stringify(DEXA_SEED));
+  safeSetItem(DEXA_KEY, JSON.stringify(DEXA_SEED));
   return DEXA_SEED.slice();
 }
 function saveDexaScans(arr) {
   const clean = arr.filter(s => s && s.date).sort((a,b) => a.date.localeCompare(b.date));
-  localStorage.setItem(DEXA_KEY, JSON.stringify(clean));
+  safeSetItem(DEXA_KEY, JSON.stringify(clean));
   return clean;
 }
 function upsertDexaScan(scan) {
@@ -1773,18 +1782,18 @@ function load() {
   try { const r = localStorage.getItem(KEY); if(r) return JSON.parse(r); } catch(e){}
   return { entries: [] };
 }
-function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+function save(data) { safeSetItem(KEY, JSON.stringify(data)); }
 
 // ─── Google Sheets Sync ────────────────────────────────────────────────────────
 function getSheetsUrl() { try { return localStorage.getItem(SHEETS_URL_KEY) || ''; } catch(e) { return ''; } }
-function setSheetsUrl(url) { localStorage.setItem(SHEETS_URL_KEY, url); }
+function setSheetsUrl(url) { safeSetItem(SHEETS_URL_KEY, url); }
 
 function updateSyncUI(status, msg) {
   const dot = document.getElementById('sync-badge-dot');
   const label = document.getElementById('sync-badge-msg');
   if (dot) { dot.className = 'sync-dot ' + (status === 'green' ? 'green' : status === 'yellow' ? 'yellow' : status === 'red' ? 'red' : 'gray'); }
   if (label) label.textContent = msg;
-  if (status === 'green') { try { localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString()); } catch(e){} }
+  if (status === 'green') { try { safeSetItem(LAST_SYNC_KEY, new Date().toISOString()); } catch(e){} }
   if (status === 'red') showToast('⚠ ' + msg);
 }
 
@@ -1940,7 +1949,7 @@ function saveCfg() {
   if (bf && bf.value) CFG.bfTarget     = parseFloat(bf.value);
   if (ld) CFG.lastDexaDate = ld.value.trim();
   if (nd) CFG.nextDexaDate = nd.value.trim();
-  localStorage.setItem(CFG_KEY, JSON.stringify({
+  safeSetItem(CFG_KEY, JSON.stringify({
     startDate: CFG.startDate, startWeight: CFG.startWeight,
     goalWeight: CFG.goalWeight, goalRate: CFG.goalRate, bfTarget: CFG.bfTarget,
     lastDexaDate: CFG.lastDexaDate, nextDexaDate: CFG.nextDexaDate
@@ -2423,7 +2432,7 @@ function exportData() {
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=`body-tracker-backup-${today()}.json`; a.click();
   URL.revokeObjectURL(url);
-  try { localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString()); } catch(e){}
+  try { safeSetItem(LAST_EXPORT_KEY, new Date().toISOString()); } catch(e){}
   updateBackupStatus();
   showToast('✓ Backup exported');
 }
@@ -2444,7 +2453,7 @@ function importData(e) {
       }
       if (parsed.foodTargets) saveFoodTargets(parsed.foodTargets);
       if (Array.isArray(parsed.foodInitDates)) {
-        localStorage.setItem(FOOD_INIT_DATES_KEY, JSON.stringify(parsed.foodInitDates));
+        safeSetItem(FOOD_INIT_DATES_KEY, JSON.stringify(parsed.foodInitDates));
       }
       if (Array.isArray(parsed.skipDates)) {
         saveSkipDates(new Set(parsed.skipDates));
@@ -2469,6 +2478,29 @@ function showToast(msg) {
   const el=document.getElementById('import-toast');
   el.textContent=msg; el.style.display='block';
   setTimeout(()=>{el.style.display='none';},3500);
+}
+
+// Wrapper around localStorage.setItem that catches QuotaExceededError and other write
+// failures so they don't silently corrupt local state. Returns true on success, false on failure.
+// Caller is responsible for stringifying objects before passing them in.
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    const isQuota = e && (
+      e.name === 'QuotaExceededError' ||
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      e.code === 22 || e.code === 1014
+    );
+    if (isQuota) {
+      showToast('⚠️ Browser storage full — last change was NOT saved. Export your data and clear old entries.');
+    } else {
+      showToast('⚠️ Could not save locally — ' + (e && e.message ? e.message : 'unknown error'));
+    }
+    try { console.error('[safeSetItem] failed for key', key, e); } catch(_) {}
+    return false;
+  }
 }
 
 // ─── Backup status ──────────────────────────────────────────────────────────
@@ -2558,11 +2590,11 @@ async function syncOnVisibility() {
         e.food_name !== 'Cottage Cheese (2%, Good Culture)'
       );
       if (filtered.length !== entries.length) {
-        localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(filtered));
+        safeSetItem(FOOD_ENTRIES_KEY, JSON.stringify(filtered));
       }
     }
   } catch(e) { /* ignore */ }
-  localStorage.setItem(MIG_KEY, '1');
+  safeSetItem(MIG_KEY, '1');
 })();
 
 // Migrate "Evening Snack" → "Supper" in stored food entries
@@ -2577,10 +2609,10 @@ async function syncOnVisibility() {
       entries.forEach(e => {
         if (e.meal === 'Evening Snack') { e.meal = 'Supper'; changed = true; }
       });
-      if (changed) localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(entries));
+      if (changed) safeSetItem(FOOD_ENTRIES_KEY, JSON.stringify(entries));
     }
   } catch(e) {}
-  localStorage.setItem(MIG_KEY, '1');
+  safeSetItem(MIG_KEY, '1');
 })();
 
 // ─── Ensure today's meal plan exists (runs at boot, regardless of tab) ───────
@@ -2683,7 +2715,7 @@ function ensureTodayMealPlan() {
         MEAL_PLAN_TEMPLATE = sanitizePlanTemplate(libraryData.planTemplate);
       }
       // Update cache with fresh data from Sheets
-      try { localStorage.setItem(FOOD_LIBRARY_CACHE_KEY, JSON.stringify({ foods: FOOD_DB, planTemplate: MEAL_PLAN_TEMPLATE })); } catch(e) {}
+      try { safeSetItem(FOOD_LIBRARY_CACHE_KEY, JSON.stringify({ foods: FOOD_DB, planTemplate: MEAL_PLAN_TEMPLATE })); } catch(e) {}
       // Refresh the food dropdown if the food tab is visible
       if (document.getElementById('panel-food').classList.contains('active')) populateFoodSelect();
     }
@@ -2730,7 +2762,7 @@ let FOOD_DB = [
   { id:'spinach',        name:'Spinach',               category:'Supper', serving:4,    unit:'cups',    cal:20,  p:2.0, c:3.0,  f:0.0  },
   { id:'carrots',        name:'Carrots',               category:'Supper', serving:85,   unit:'g',       cal:30,  p:0.0, c:7.0,  f:0.0  },
   { id:'apple-gala',      name:'Apple (Gala)',          category:'Supper', serving:172,  unit:'g',       cal:98,  p:0.43,c:23.5, f:0.2  },
-  { id:'sardines',       name:'Sardines',              category:'Supper', serving:1,    unit:'tin',     cal:140, p:18.0,c:0.0,  f:8.0  },
+  { id:'sardines',       name:'Sardines (140cal)',     category:'Supper', serving:1,    unit:'tin',     cal:140, p:18.0,c:0.0,  f:8.0  },
   { id:'sauerkraut',     name:'Sauerkraut',            category:'Supper', serving:0.25, unit:'cups',    cal:5,   p:0.0, c:1.0,  f:0.0  },
   { id:'mustard',        name:'Mustard',               category:'Supper', serving:1,    unit:'tbsp',    cal:5,   p:0.0, c:4.0,  f:0.0  },
   // Snack
@@ -2780,7 +2812,7 @@ function getSkipDates() {
   catch(e) { return new Set(); }
 }
 function saveSkipDates(dates) {
-  localStorage.setItem(SKIP_DATES_KEY, JSON.stringify([...dates]));
+  safeSetItem(SKIP_DATES_KEY, JSON.stringify([...dates]));
 }
 function isSkippedDay(date) { return getSkipDates().has(date); }
 function toggleSkipDay() {
@@ -2820,8 +2852,8 @@ let MEAL_PLAN_TEMPLATE = [
   // Supper
   { food_id:'spinach-es',        food_name:'Spinach',               meal:'Supper', qty:8,      unit:'cups',   calories:40,    protein:4,     carbs:6,      fat:0     },
   { food_id:'carrots-es',        food_name:'Carrots',               meal:'Supper', qty:150,    unit:'g',      calories:52.8,  protein:0,     carbs:12.32,  fat:0     },
-  { food_id:'apple--gala--es',   food_name:'Apple (Gala)',          meal:'Supper', qty:250,    unit:'g',      calories:142.394,protein:0.625, carbs:34.146, fat:0.291 },
-  { food_id:'sardines-es',       food_name:'Sardines',              meal:'Supper', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
+  { food_id:'apple-gala-es',     food_name:'Apple (Gala)',          meal:'Supper', qty:250,    unit:'g',      calories:142.394,protein:0.625, carbs:34.146, fat:0.291 },
+  { food_id:'sardines-140cal-es', food_name:'Sardines (140cal)',    meal:'Supper', qty:1,      unit:'tin',    calories:140,   protein:18,    carbs:0,      fat:8     },
   { food_id:'sauerkraut-es',     food_name:'Sauerkraut',            meal:'Supper', qty:0.5,    unit:'cups',   calories:10,    protein:0,     carbs:2,      fat:0     },
   { food_id:'mustard-es',        food_name:'Mustard',               meal:'Supper', qty:3,      unit:'tbsp',   calories:15,    protein:0,     carbs:12,     fat:0     },
   // Snack
@@ -2831,19 +2863,33 @@ let MEAL_PLAN_TEMPLATE = [
 // Foods explicitly removed from the meal plan — filter these out of Sheets-synced templates too
 const REMOVED_PLAN_FOODS = new Set(['Rice Cake', 'Apple (Envy)', 'Cottage Cheese (2%, Good Culture)']);
 
-// Meal name corrections for Sheets-synced templates (Supper items sometimes come back as Dinner/Evening Snack)
-const SUPPER_FOOD_IDS = new Set(['spinach-es','carrots-es','apple--envy--es','apple--gala--es','sardines-es','sauerkraut-es','mustard-es']);
+// Meal name corrections for Sheets-synced templates (Supper items sometimes come back as Dinner/Evening Snack).
+// Includes BOTH the actual single-dash IDs the Apps Script generates (e.g. 'apple-gala-es') AND the
+// legacy double-dash forms ('apple--gala--es') that older versions of this file emitted into the
+// hardcoded MEAL_PLAN_TEMPLATE — so existing localStorage entries from past sessions still match.
+const SUPPER_FOOD_IDS = new Set([
+  // Canonical forms (what Apps Script generates today)
+  'spinach-es','carrots-es','apple-gala-es','apple-envy-es','sardines-es',
+  'sardines-140cal-es','sardines-170cal-es','sauerkraut-es','mustard-es',
+  // Legacy double-dash forms (from older hardcoded templates) — kept for backward compat
+  'apple--gala--es','apple--envy--es','sardines--140cal--es','sardines--170cal--es'
+]);
 
-// Known supper food names — used to fix meal assignment on ANY entry (not just plan entries)
-const SUPPER_FOOD_NAMES = new Set(['Spinach','Carrots','Apple (Gala)','Apple (Envy)','Sardines','Sauerkraut','Mustard']);
-const SUPPER_FOOD_NAMES_LOWER = new Set([...SUPPER_FOOD_NAMES].map(n => n.toLowerCase()));
+// Known supper food names — used to fix meal assignment on ANY entry (not just plan entries).
+// Match leniently: any name that starts with one of these tokens (case-insensitive) is treated as a Supper food.
+// This way if the sheet renames "Sardines" → "Sardines (140cal)" it still gets picked up.
+const SUPPER_FOOD_NAME_PREFIXES = ['spinach','carrots','apple (gala)','apple (envy)','sardines','sauerkraut','mustard'];
+function isSupperFoodName(name) {
+  if (!name) return false;
+  const n = String(name).toLowerCase().trim();
+  return SUPPER_FOOD_NAME_PREFIXES.some(p => n === p || n.startsWith(p + ' ') || n.startsWith(p + '('));
+}
 
 // Normalize a single food entry's meal field: if it's a known supper food stored as Dinner/Evening Snack, fix it
 function normalizeEntryMeal(e) {
   if (e.meal === 'Supper') return e;
   if (e.meal !== 'Dinner' && e.meal !== 'Evening Snack') return e;
-  const name = (e.food_name || '').toLowerCase();
-  if (SUPPER_FOOD_NAMES_LOWER.has(name)) {
+  if (isSupperFoodName(e.food_name)) {
     return { ...e, meal: 'Supper', time: mealTimeToHHMM(MEAL_TIMES['Supper'] || '7:00 PM') };
   }
   return e;
@@ -2861,6 +2907,11 @@ function sanitizePlanTemplate(template) {
       if (item.meal === 'Evening Snack') {
         return { ...item, meal: 'Supper' };
       }
+      // Fallback: catch supper foods by NAME if the Apps Script returned them as Dinner
+      // (e.g. when the sheet's "Supper" header isn't recognized by an outdated script deploy).
+      if (item.meal === 'Dinner' && isSupperFoodName(item.food_name)) {
+        return { ...item, meal: 'Supper' };
+      }
       return item;
     });
 }
@@ -2874,7 +2925,7 @@ function getFoodInitDates() {
 function markFoodDateInitialized(date) {
   const dates = getFoodInitDates();
   dates.add(date);
-  localStorage.setItem(FOOD_INIT_DATES_KEY, JSON.stringify([...dates]));
+  safeSetItem(FOOD_INIT_DATES_KEY, JSON.stringify([...dates]));
 }
 
 function createPlanEntries(date) {
@@ -2896,8 +2947,9 @@ function createPlanEntries(date) {
 
 // ─── Migration: sync meal plan with spreadsheet (remove old foods, fix Supper, swap Apple) ──
 // v7: Now fixes ALL entries (not just plan entries) using food-name matching via normalizeEntryMeal
+// v8: Catches "Sardines (140cal)" + any future renames via prefix matching in isSupperFoodName
 (function migrateMealPlanSync() {
-  const MIG_KEY = 'migration_mealPlanSync_v7';
+  const MIG_KEY = 'migration_mealPlanSync_v8';
   if (localStorage.getItem(MIG_KEY)) return;
   try {
     const raw = localStorage.getItem(FOOD_ENTRIES_KEY);
@@ -2920,7 +2972,7 @@ function createPlanEntries(date) {
         }
         return e;
       });
-      if (changed) localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(filtered));
+      if (changed) safeSetItem(FOOD_ENTRIES_KEY, JSON.stringify(filtered));
 
       // Reset today's init date so ensureTodayMealPlan re-creates plan with updated template
       const td = today();
@@ -2928,13 +2980,13 @@ function createPlanEntries(date) {
       if (initDates.has(td)) {
         // Remove today's plan entries so they get re-created fresh
         const withoutTodayPlan = filtered.filter(e => !(e.date === td && e.plan));
-        localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(withoutTodayPlan));
+        safeSetItem(FOOD_ENTRIES_KEY, JSON.stringify(withoutTodayPlan));
         initDates.delete(td);
-        localStorage.setItem(FOOD_INIT_DATES_KEY, JSON.stringify([...initDates]));
+        safeSetItem(FOOD_INIT_DATES_KEY, JSON.stringify([...initDates]));
       }
     }
   } catch(e) {}
-  localStorage.setItem(MIG_KEY, '1');
+  safeSetItem(MIG_KEY, '1');
 })();
 
 // ── Storage helpers ──────────────────────────────────────────────────────────
@@ -2942,12 +2994,12 @@ function getFoodTargets() {
   // Hardwired targets — consistent across all devices
   return {...FOOD_TARGET_DEFAULTS};
 }
-function saveFoodTargets(t) { localStorage.setItem(FOOD_TARGETS_KEY, JSON.stringify(t)); }
+function saveFoodTargets(t) { safeSetItem(FOOD_TARGETS_KEY, JSON.stringify(t)); }
 
 function getCustomFoods() {
   try { return JSON.parse(localStorage.getItem(CUSTOM_FOODS_KEY)) || []; } catch(e) { return []; }
 }
-function saveCustomFoodsDB(foods) { localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(foods)); }
+function saveCustomFoodsDB(foods) { safeSetItem(CUSTOM_FOODS_KEY, JSON.stringify(foods)); }
 
 function getFoodEntries() {
   try {
@@ -2972,7 +3024,7 @@ function getFoodEntries() {
     return deduped;
   } catch(e) { return []; }
 }
-function saveFoodEntriesDB(entries) { localStorage.setItem(FOOD_ENTRIES_KEY, JSON.stringify(entries)); }
+function saveFoodEntriesDB(entries) { safeSetItem(FOOD_ENTRIES_KEY, JSON.stringify(entries)); }
 
 function getAllFoods() {
   // Dedup by name (case-insensitive) — keep first occurrence
@@ -3490,7 +3542,7 @@ async function saveCustomFood() {
   try {
     const cached = JSON.parse(localStorage.getItem(FOOD_LIBRARY_CACHE_KEY)) || {};
     cached.foods = FOOD_DB;
-    localStorage.setItem(FOOD_LIBRARY_CACHE_KEY, JSON.stringify(cached));
+    safeSetItem(FOOD_LIBRARY_CACHE_KEY, JSON.stringify(cached));
   } catch(e) {}
 
   // Push to Google Sheets "Other Foods Library" section
@@ -3861,13 +3913,13 @@ function getHabitsList() {
   try { return JSON.parse(localStorage.getItem(HABITS_LIST_KEY)) || [...DEFAULT_HABITS]; }
   catch(e) { return [...DEFAULT_HABITS]; }
 }
-function saveHabitsList(list) { localStorage.setItem(HABITS_LIST_KEY, JSON.stringify(list)); }
+function saveHabitsList(list) { safeSetItem(HABITS_LIST_KEY, JSON.stringify(list)); }
 
 function getHabitsData() {
   try { return JSON.parse(localStorage.getItem(HABITS_KEY)) || {}; }
   catch(e) { return {}; }
 }
-function saveHabitsData(data) { localStorage.setItem(HABITS_KEY, JSON.stringify(data)); }
+function saveHabitsData(data) { safeSetItem(HABITS_KEY, JSON.stringify(data)); }
 
 // Get habits for a specific date — returns { habitName: { done, notes, duration } }
 function getHabitsForDate(date) {
@@ -3880,6 +3932,8 @@ function setHabitForDate(date, habit, fields) {
   if (!data[date]) data[date] = {};
   if (!data[date][habit]) data[date][habit] = { done: false, notes: '', duration: null };
   Object.assign(data[date][habit], fields);
+  // Stamp local edit time so mergeHabitsData can do newer-wins on conflict with Sheets
+  data[date][habit].updated = new Date().toISOString();
   saveHabitsData(data);
   habitDirtyDates.add(date);
   updateHabitSyncUI();
@@ -3961,7 +4015,7 @@ function checkCoreHabitsCelebration(date) {
   if (!allCoreDone) return;
   const key = 'habit_celebration_' + date;
   if (localStorage.getItem(key)) return; // already celebrated today
-  localStorage.setItem(key, '1');
+  safeSetItem(key, '1');
   celebrateAllHabitsDone();
 }
 
@@ -4401,7 +4455,7 @@ function getStepsData() {
   try { return JSON.parse(localStorage.getItem(STEPS_KEY)) || {}; }
   catch(e) { return {}; }
 }
-function saveStepsData(data) { localStorage.setItem(STEPS_KEY, JSON.stringify(data)); }
+function saveStepsData(data) { safeSetItem(STEPS_KEY, JSON.stringify(data)); }
 
 async function pullStepsFromSheets() {
   const url = getSheetsUrl();
@@ -4422,23 +4476,102 @@ function mergeStepsData(local, remoteEntries) {
   return merged;
 }
 
+// Import steps from a JSON file (output of parse-steps.js)
+async function importStepsJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const label = document.getElementById('steps-import-label');
+
+  try {
+    const text = await file.text();
+    const entries = JSON.parse(text);
+    if (!Array.isArray(entries) || !entries.length || !entries[0].date || entries[0].steps === undefined) {
+      showToast('Invalid steps JSON format');
+      return;
+    }
+
+    // Save to localStorage
+    const local = getStepsData();
+    const merged = mergeStepsData(local, entries);
+    saveStepsData(merged);
+    label.textContent = `${entries.length} days loaded locally`;
+    showToast(`Loaded ${entries.length} days of step data`);
+
+    // Push to Sheets in batches
+    const url = getSheetsUrl();
+    if (!url) {
+      showToast('Steps saved locally — add Sheets URL to sync');
+      renderTrends();
+      event.target.value = '';
+      return;
+    }
+
+    label.textContent = `Syncing ${entries.length} days to Sheets...`;
+    const BATCH = 100;
+    let pushed = 0;
+    for (let i = 0; i < entries.length; i += BATCH) {
+      const batch = entries.slice(i, i + BATCH);
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'syncSteps', entries: batch }),
+          redirect: 'follow',
+        });
+        pushed += batch.length;
+        label.textContent = `Synced ${pushed}/${entries.length} days...`;
+      } catch (err) {
+        console.error('Steps sync batch error:', err);
+      }
+    }
+
+    label.textContent = `✓ ${pushed} days synced to Sheets`;
+    showToast(`Synced ${pushed} days of steps to Sheets`);
+    renderTrends();
+  } catch (err) {
+    console.error('Steps import error:', err);
+    showToast('Error importing steps: ' + err.message);
+    label.textContent = 'import from Apple Health';
+  }
+  event.target.value = '';
+}
+
 function mergeHabitsData(local, remoteEntries) {
-  // remoteEntries is flat: [{date, habit, done, notes, duration}, ...]
-  // local is nested: { date: { habit: {done, notes, duration} } }
+  // remoteEntries is flat: [{date, habit, done, notes, duration, updated}, ...]
+  // local is nested: { date: { habit: {done, notes, duration, updated} } }
+  // Newer-wins: whichever side has the more recent `updated` timestamp wins on conflict.
+  // This lets direct Sheet edits propagate back to the app, while still preserving local
+  // edits made between syncs.
   const merged = JSON.parse(JSON.stringify(local));
   // Clean up any 'undefined' keys from prior bad merges (weight data fallthrough)
   Object.keys(merged).forEach(date => { delete merged[date]['undefined']; });
+
+  function tsValue(s) {
+    if (!s) return 0;
+    const t = Date.parse(s);
+    return isNaN(t) ? 0 : t;
+  }
+
   remoteEntries.forEach(r => {
     // Skip entries with missing/invalid habit names (guards against non-habit data)
     if (!r.habit || r.habit === 'undefined') return;
     if (!merged[r.date]) merged[r.date] = {};
-    // Remote fills in if not present locally, or if local has no data for this habit
-    if (!merged[r.date][r.habit]) {
-      merged[r.date][r.habit] = {
-        done: String(r.done).toUpperCase() === 'TRUE' || r.done === true,
-        notes: r.notes || '',
-        duration: r.duration ? parseInt(r.duration) : null
-      };
+    const localEntry  = merged[r.date][r.habit];
+    const remoteEntry = {
+      done: String(r.done).toUpperCase() === 'TRUE' || r.done === true,
+      notes: r.notes || '',
+      duration: r.duration ? parseInt(r.duration) : null,
+      updated: r.updated || ''
+    };
+    if (!localEntry) {
+      // No local value — take remote
+      merged[r.date][r.habit] = remoteEntry;
+    } else {
+      const localTs  = tsValue(localEntry.updated);
+      const remoteTs = tsValue(remoteEntry.updated);
+      // Remote wins ONLY if it has a strictly newer timestamp. Ties and missing-remote-ts
+      // preserve local — protects unsynced local edits.
+      if (remoteTs > localTs) merged[r.date][r.habit] = remoteEntry;
     }
   });
   return merged;
@@ -4992,7 +5125,7 @@ function getRCData() {
   try { return JSON.parse(localStorage.getItem(RC_KEY)) || { startDate:null, entries:{} }; }
   catch(e) { return { startDate:null, entries:{} }; }
 }
-function saveRCData(data) { localStorage.setItem(RC_KEY, JSON.stringify(data)); }
+function saveRCData(data) { safeSetItem(RC_KEY, JSON.stringify(data)); }
 
 function rcDayNumber(dateStr, startDate) {
   const d = new Date(dateStr + 'T12:00:00');
