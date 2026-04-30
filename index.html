@@ -2356,6 +2356,12 @@ async function refreshWeightFromSheets() {
 }
 
 function mergeEntries(local, remote) {
+  // ARCHITECTURAL FIX (2026-04-29 evening): see mergeFoodEntries comment.
+  // When queue is idle, sheet is source of truth — overwrite local entirely so
+  // deletes on other devices propagate correctly.
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remote)) {
+    return remote.filter(e => e.date && e.weight).sort((a,b)=>a.date.localeCompare(b.date));
+  }
   const map = {};
   local.forEach(e=>{if(e.date&&e.weight)map[e.date]=e;});
   remote.forEach(e=>{if(e.date&&e.weight)map[e.date]=e;});
@@ -3868,7 +3874,11 @@ function saveFoodTime(id) {
 function renderFood() {
   // Auto-initialize day from meal plan the FIRST time this date is viewed (local only)
   // Does NOT mark the date as dirty — only explicit edits (add/delete/edit) trigger sync
-  if (!getFoodInitDates().has(foodCurrentDate)) {
+  // ARCHITECTURAL FIX (2026-04-29 evening): only autopopulate for TODAY.
+  // For past dates we'd be recreating plan entries that may have been deliberately
+  // deleted on another device — the source of the "Apple (Gala) coming back"
+  // bug Ethan saw on mobile after clearing browser data.
+  if (foodCurrentDate === today() && !getFoodInitDates().has(foodCurrentDate)) {
     markFoodDateInitialized(foodCurrentDate);
     const existing = getFoodEntries();
     // Only auto-populate from template if no entries already exist for this date
@@ -4415,6 +4425,18 @@ async function pullFoodLibraryFromSheets() {
 function normFoodName(n) { return (n||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
 
 function mergeFoodEntries(local, remote) {
+  // ARCHITECTURAL FIX (2026-04-29 evening): when the pending-writes queue is
+  // idle, the sheet IS the source of truth — overwrite local entirely. The
+  // old merge logic preserved local entries that didn't appear in remote,
+  // which incorrectly resurrected entries deleted on other devices (and
+  // preserved stale qty/macros on entries edited elsewhere).
+  // We only fall back to merge when the queue is NOT idle, i.e. there are
+  // pending local writes that haven't reached the sheet yet — those need to
+  // be preserved until the queue flushes.
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remote)) {
+    return remote.slice();
+  }
+  if (!Array.isArray(remote)) remote = [];
   // BUGFIX (2026-04-29): the original dedupe-by-name logic discarded legitimate
   // multiple-quantity entries (e.g., logging two Rx Bars on the same day).
   // Dedupe-by-name is now ONLY applied when one side is a plan entry — that's
@@ -5030,6 +5052,12 @@ async function pullStepsFromSheets() {
 }
 
 function mergeStepsData(local, remoteEntries) {
+  // ARCHITECTURAL FIX (2026-04-29 evening): when queue is idle, sheet is truth.
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remoteEntries)) {
+    const out = {};
+    remoteEntries.forEach(e => { if (e.date) out[e.date] = Number(e.steps) || 0; });
+    return out;
+  }
   const merged = { ...local };
   remoteEntries.forEach(e => {
     if (e.date) merged[e.date] = Number(e.steps) || 0;
@@ -5098,6 +5126,23 @@ async function importStepsJSON(event) {
 }
 
 function mergeHabitsData(local, remoteEntries) {
+  // ARCHITECTURAL FIX (2026-04-29 evening): when queue is idle, sheet is truth.
+  // Convert remote flat array into the nested {date: {habit: {...}}} shape and
+  // return that, ignoring local entirely. The queue protects in-flight edits.
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remoteEntries)) {
+    const out = {};
+    remoteEntries.forEach(r => {
+      if (!r.habit || r.habit === 'undefined') return;
+      if (!out[r.date]) out[r.date] = {};
+      out[r.date][r.habit] = {
+        done: String(r.done).toUpperCase() === 'TRUE' || r.done === true,
+        notes: r.notes || '',
+        duration: r.duration ? parseInt(r.duration) : null,
+        updated: r.updated || '',
+      };
+    });
+    return out;
+  }
   // remoteEntries is flat: [{date, habit, done, notes, duration, updated}, ...]
   // local is nested: { date: { habit: {done, notes, duration, updated} } }
   // Newer-wins: whichever side has the more recent `updated` timestamp wins on conflict.
