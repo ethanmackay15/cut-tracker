@@ -75,11 +75,31 @@
     @keyframes glow { 0%,100%{box-shadow:0 0 0 rgba(251,146,60,0)} 50%{box-shadow:0 0 22px rgba(251,146,60,.55)} }
 
     /* ───── Header ───── */
-    .header { text-align: left; margin-bottom: 18px; }
+    .header { text-align: left; margin-bottom: 18px; position: relative; }
     .header .date-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
     .header h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
     body.sat .header h1 { background: linear-gradient(135deg,#f97316,#ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .header .sub { color: var(--muted); margin-top: 2px; font-size: 0.85rem; font-weight: 500; }
+
+    /* Always-visible sync badge in the page header (Phase 2C UI). Top-right of
+       the header, regardless of which tab is active. Click to force a refresh. */
+    .header-sync {
+      position: absolute; top: 4px; right: 0;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--muted);
+      cursor: pointer; user-select: none;
+      padding: 5px 10px; border-radius: 999px;
+      background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.06);
+      transition: opacity .15s, transform .1s;
+    }
+    .header-sync:hover  { opacity: 0.85; }
+    .header-sync:active { transform: scale(0.97); }
+    .header-sync .sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .header-sync .sync-dot.green  { background: #10b981; }
+    .header-sync .sync-dot.yellow { background: #f59e0b; animation: pulse-dot 1.2s infinite; }
+    .header-sync .sync-dot.red    { background: #ef4444; }
+    .header-sync .sync-dot.gray   { background: #94a3b8; }
+    @media(max-width:480px){ .header-sync { font-size: 0.7rem; padding: 4px 8px; } }
 
     /* ───── Bottom Nav Bar ───── */
     .tabs {
@@ -1319,6 +1339,10 @@
     <div class="date-label" id="header-date-label"></div>
     <h1>Power and Fitness</h1>
     <div class="sub">Slow and easy.</div>
+    <div class="header-sync" id="header-sync-el" onclick="manualForceRefresh()" title="Click to force a refresh from Google Sheets">
+      <span class="sync-dot gray" id="header-sync-dot"></span>
+      <span id="header-sync-msg">…</span>
+    </div>
   </div>
 
   <!-- Bottom Tab Navigation (fixed) -->
@@ -1897,10 +1921,16 @@ function getSheetsUrl() { try { return localStorage.getItem(SHEETS_URL_KEY) || '
 function setSheetsUrl(url) { safeSetItem(SHEETS_URL_KEY, url); }
 
 function updateSyncUI(status, msg) {
-  const dot = document.getElementById('sync-badge-dot');
-  const label = document.getElementById('sync-badge-msg');
-  if (dot) { dot.className = 'sync-dot ' + (status === 'green' ? 'green' : status === 'yellow' ? 'yellow' : status === 'red' ? 'red' : 'gray'); }
-  if (label) label.textContent = msg;
+  const cls = 'sync-dot ' + (status === 'green' ? 'green' : status === 'yellow' ? 'yellow' : status === 'red' ? 'red' : 'gray');
+  // Update both the in-tab backup-bar badge AND the always-visible header badge.
+  ['sync-badge-dot', 'header-sync-dot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = cls;
+  });
+  ['sync-badge-msg', 'header-sync-msg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg;
+  });
   if (status === 'green') { try { safeSetItem(LAST_SYNC_KEY, new Date().toISOString()); } catch(e){} }
   if (status === 'red') showToast('⚠ ' + msg);
 }
@@ -4385,23 +4415,47 @@ async function pullFoodLibraryFromSheets() {
 function normFoodName(n) { return (n||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
 
 function mergeFoodEntries(local, remote) {
+  // BUGFIX (2026-04-29): the original dedupe-by-name logic discarded legitimate
+  // multiple-quantity entries (e.g., logging two Rx Bars on the same day).
+  // Dedupe-by-name is now ONLY applied when one side is a plan entry — that's
+  // the original intent (suppress plan-vs-manual dupes), without rejecting
+  // legitimate manual-vs-manual duplicates of the same food.
   const map = {};
-  const seen = new Set(); // track date|meal|food to catch ID-mismatch dupes
-  // Normalize meals before merging to prevent dupes from meal-name mismatches (e.g. Dinner vs Supper)
+  // For each (date, meal, food) key, track whether ANY local entry with that
+  // key is a plan entry. Used to decide whether to suppress remote dupes.
+  const localPlanKeys = new Set();
+
   local.forEach(e => {
     const ne = normalizeEntryMeal(e);
     map[ne.id] = ne;
-    const foodKey = ne.food_id || normFoodName(ne.food_name);
-    seen.add(ne.date + '|' + ne.meal + '|' + foodKey);
+    const isPlan = ne.plan === true || (ne.id && String(ne.id).startsWith('plan-'));
+    if (isPlan) {
+      const foodKey = ne.food_id || normFoodName(ne.food_name);
+      localPlanKeys.add(ne.date + '|' + ne.meal + '|' + foodKey);
+    }
   });
-  // Remote fills in entries not present locally (don't overwrite local edits)
-  // Also skip if same date+meal+food already exists under a different ID
+
   remote.forEach(e => {
     const ne = normalizeEntryMeal(e);
+    if (map[ne.id]) return; // already in local under same id
+    const isPlan = ne.plan === true || (ne.id && String(ne.id).startsWith('plan-'));
     const foodKey = ne.food_id || normFoodName(ne.food_name);
     const key = ne.date + '|' + ne.meal + '|' + foodKey;
-    if (!map[ne.id] && !seen.has(key)) { map[ne.id] = ne; seen.add(key); }
+    // Only suppress remote if EITHER side is a plan entry — that's the
+    // plan-vs-manual dedupe case. Manual-vs-manual dupes are legitimate
+    // (e.g., two separate Rx Bar logs on the same day) and must be kept.
+    if (isPlan && localPlanKeys.has(key)) return;
+    if (isPlan) {
+      // Track this so a later non-plan remote entry doesn't double up
+      localPlanKeys.add(key);
+    } else if (localPlanKeys.has(key)) {
+      // Local has a plan version of this food; remote is a manual edit of it.
+      // The original code suppressed this. Preserving that behavior: skip.
+      return;
+    }
+    map[ne.id] = ne;
   });
+
   return Object.values(map);
 }
 
