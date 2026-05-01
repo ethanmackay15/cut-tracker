@@ -3160,17 +3160,22 @@ async function syncOnVisibility(forceEvenIfHidden) {
 function ensureTodayMealPlan() {
   const td = today();
   if (!getFoodInitDates().has(td)) {
-    // First time seeing this date — create plan entries locally only.
-    // Phase 2: plan entries are DERIVED state from the meal plan template in the sheet
-    // (deterministic IDs like 'plan-eggs-b-2026-04-29' are identical across devices),
-    // so we no longer push them to the sheet. They appear locally on each device, and
-    // get pushed only if the user edits or deletes one (saveFoodEdit / deleteFoodEntry).
+    // First time seeing this date — create plan entries locally AND enqueue them.
+    // ARCHITECTURAL FIX (2026-04-30): the Phase 2 decision to NOT enqueue plan
+    // entries was wrong — once the merge logic switched to overwrite-when-idle,
+    // local plan entries get wiped on the next refresh if the sheet doesn't have
+    // them. Solution: enqueue each plan entry on creation so it's pushed to the
+    // sheet, and the in-flight queue keeps the merge in non-idle (preserve-local)
+    // mode during the brief window between autopopulate and queue flush.
+    // Idempotent across devices: deterministic IDs mean two devices autopopulating
+    // produce upserts that no-op against each other.
     markFoodDateInitialized(td);
     const existing = getFoodEntries();
     const hasExisting = existing.some(e => e.date === td);
     if (!hasExisting) {
       const planEntries = createPlanEntries(td);
       saveFoodEntriesDB([...existing, ...planEntries]);
+      planEntries.forEach(e => enqueueWrite('addFood', e));
     }
   }
 }
@@ -3887,6 +3892,9 @@ function renderFood() {
     if (!hasExisting) {
       const planEntries = createPlanEntries(foodCurrentDate);
       saveFoodEntriesDB([...existing, ...planEntries]);
+      // ARCHITECTURAL FIX (2026-04-30): enqueue each plan entry so the sheet
+      // gets them; otherwise the overwrite-merge wipes them on next refresh.
+      planEntries.forEach(e => enqueueWrite('addFood', e));
     }
   }
 
