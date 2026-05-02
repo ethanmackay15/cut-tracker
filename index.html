@@ -75,16 +75,21 @@
     @keyframes glow { 0%,100%{box-shadow:0 0 0 rgba(251,146,60,0)} 50%{box-shadow:0 0 22px rgba(251,146,60,.55)} }
 
     /* ───── Header ───── */
-    .header { text-align: left; margin-bottom: 18px; position: relative; }
-    .header .date-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
-    .header h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
-    body.sat .header h1 { background: linear-gradient(135deg,#f97316,#ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .header .sub { color: var(--muted); margin-top: 2px; font-size: 0.85rem; font-weight: 500; }
+    /* Watchface aesthetic v2 (2026-04-30): thin top strip, no app brand banner.
+       Date stamp left, sync pill right. Same chrome on every tab. */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; min-height: 30px;
+    }
+    .header .date-label {
+      font-size: 0.7rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+    body.sat .header .date-label { color: #ea580c; }
+    /* h1 + .sub no longer present in markup; selectors removed. */
 
-    /* Always-visible sync badge in the page header (Phase 2C UI). Top-right of
-       the header, regardless of which tab is active. Click to force a refresh. */
+    /* Sync badge: text + dot pill on the right of the header strip. */
     .header-sync {
-      position: absolute; top: 4px; right: 0;
       display: flex; align-items: center; gap: 6px;
       font-size: 0.75rem; color: var(--muted);
       cursor: pointer; user-select: none;
@@ -101,27 +106,91 @@
     .header-sync .sync-dot.gray   { background: #94a3b8; }
     @media(max-width:480px){ .header-sync { font-size: 0.7rem; padding: 4px 8px; } }
 
-    /* ───── Bottom Nav Bar ───── */
+    /* Watchface stats — Weight tab. Two big numbers side-by-side. */
+    .stats-watchface {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-bottom: 28px; padding-top: 4px;
+    }
+    .stat-watchface { padding: 4px 0; }
+    /* Label matches existing section-label conventions (.macro-top-label etc.) */
+    .stat-watchface-lbl {
+      font-size: 0.68rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+    /* Number matches existing big-number convention (.stat-hero-val, .macro-top-val):
+       weight 800 + -0.03em tracking. Without this, the Weight tab numbers look thinner
+       and oddly stretched compared to the macro-card numbers on Food. */
+    .stat-watchface-val {
+      font-size: 3rem; font-weight: 800; color: var(--text);
+      letter-spacing: -0.03em; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-watchface-sub {
+      font-size: 0.75rem; color: var(--muted);
+      margin-top: 8px; min-height: 16px;
+    }
+    body.sat .stat-watchface-val {
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    @media(max-width:380px){ .stat-watchface-val { font-size: 2.6rem; } }
+
+    /* Journey chip v2: re-surfaced as a minimal "WEEK N · since Mar 15" subtitle.
+       Strips the card chrome and the "12% BF / the vision" right-side block. */
+    .journey-chip {
+      display: flex !important; align-items: baseline; gap: 0;
+      background: none !important; border: none !important;
+      padding: 0 !important; margin-bottom: 12px !important;
+    }
+    .journey-chip .journey-left { display: flex; align-items: baseline; gap: 6px; }
+    .journey-chip .journey-week {
+      font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .journey-chip .journey-since {
+      font-size: 0.7rem; font-weight: 500; color: var(--muted);
+      text-transform: none; letter-spacing: 0;
+    }
+    .journey-chip .journey-since::before { content: '· '; }
+    .journey-chip .journey-right { display: none; }
+
+    /* ───── Bottom Nav Bar (Watchface v2) ─────
+       Minimal text-only labels, mixed case, ink + thin underline for the active tab.
+       No emoji icons, no shadow, no uppercase tracking. */
     .tabs {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
       display: flex; gap: 0; background: var(--card);
-      padding: 6px 0 env(safe-area-inset-bottom, 8px);
+      padding: 14px 0 calc(env(safe-area-inset-bottom, 10px) + 8px);
       border-top: 1px solid var(--border);
-      box-shadow: 0 -2px 12px rgba(0,0,0,.06);
     }
     .tab {
-      flex: 1; padding: 6px 4px 4px; border: none; border-radius: 0;
-      font-size: 0.65rem; font-weight: 600; cursor: pointer; color: var(--muted);
-      background: none; transition: color .2s;
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      text-transform: uppercase; letter-spacing: 0.08em;
+      flex: 1; padding: 4px 4px; border: none; border-radius: 0;
+      background: none;
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--muted); cursor: pointer;
+      transition: color .15s;
+      position: relative;
+      text-transform: none; letter-spacing: 0;
+      display: inline-flex; align-items: center; justify-content: center;
     }
-    .tab .tab-icon { font-size: 1.3rem; line-height: 1; }
+    .tab .tab-icon { display: none; } /* legacy markup compatibility */
     .tab:hover { color: var(--text); }
     .tab-active {
-      color: var(--primary) !important; background: none !important;
+      color: var(--text) !important;
+      font-weight: 600;
     }
-    body.sat .tab-active { color: #f97316 !important; }
+    .tab-active::after {
+      content: '';
+      position: absolute;
+      left: 50%; bottom: -10px;
+      width: 26px; height: 2px;
+      background: var(--text);
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    body.sat .tab-active { color: #ea580c !important; }
+    body.sat .tab-active::after { background: #ea580c; }
 
     /* ───── Tab Panels ───── */
     .panel { display: none; }
@@ -1337,8 +1406,6 @@
 
   <div class="header">
     <div class="date-label" id="header-date-label"></div>
-    <h1>Power and Fitness</h1>
-    <div class="sub">Slow and easy.</div>
     <div class="header-sync" id="header-sync-el" onclick="manualForceRefresh()" title="Click to force a refresh from Google Sheets">
       <span class="sync-dot gray" id="header-sync-dot"></span>
       <span id="header-sync-msg">…</span>
@@ -1347,10 +1414,10 @@
 
   <!-- Bottom Tab Navigation (fixed) -->
   <div class="tabs">
-    <button class="tab" id="tab-weight" onclick="switchTab('weight')"><span class="tab-icon">📋</span>Weight</button>
-    <button class="tab" id="tab-food"   onclick="switchTab('food')"><span class="tab-icon">🍗</span>Food</button>
-    <button class="tab tab-active" id="tab-habits" onclick="switchTab('habits')"><span class="tab-icon">✓</span>Habits</button>
-    <button class="tab" id="tab-trends" onclick="switchTab('trends')"><span class="tab-icon">📊</span>Trends</button>
+    <button class="tab" id="tab-weight" onclick="switchTab('weight')">Weight</button>
+    <button class="tab" id="tab-food"   onclick="switchTab('food')">Food</button>
+    <button class="tab tab-active" id="tab-habits" onclick="switchTab('habits')">Habits</button>
+    <button class="tab" id="tab-trends" onclick="switchTab('trends')">Trends</button>
   </div>
 
   <!-- ════════════════════════════════════════════════
@@ -1527,30 +1594,17 @@
       <button class="btn-sync refresh" id="weight-refresh-btn" onclick="refreshWeightFromSheets()">Refresh from Sheets</button>
     </div>
 
-    <!-- Stats (focused: 7-day avg, total lost, avg loss/week since start) -->
-    <div class="stats-hero">
-      <div class="stat-hero">
-        <div class="stat-hero-val" id="s-avg">—</div>
-        <div class="stat-hero-lbl">7-Day Avg</div>
-        <svg class="stat-hero-spark" id="s-avg-spark" viewBox="0 0 200 28" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1a1a2e" stop-opacity="0.5"/>
-              <stop offset="100%" stop-color="#1a1a2e" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path class="area" d=""></path>
-          <path class="line" d=""></path>
-          <circle cx="0" cy="0" r="0"></circle>
-        </svg>
+    <!-- Watchface stats (v2 2026-04-30): just today + 7-day avg, big and breathing. -->
+    <div class="stats-watchface">
+      <div class="stat-watchface">
+        <div class="stat-watchface-lbl">Today</div>
+        <div class="stat-watchface-val" id="s-today">—</div>
+        <div class="stat-watchface-sub" id="s-today-sub">lbs</div>
       </div>
-      <div class="stat-hero accent-green">
-        <div class="stat-hero-val" id="s-lost">—</div>
-        <div class="stat-hero-lbl">Lost Since Day 1</div>
-      </div>
-      <div class="stat-hero accent-teal">
-        <div class="stat-hero-val" id="s-avg-rate">—</div>
-        <div class="stat-hero-lbl">Avg Loss / Week Since Start</div>
+      <div class="stat-watchface">
+        <div class="stat-watchface-lbl">7-Day Avg</div>
+        <div class="stat-watchface-val" id="s-avg">—</div>
+        <div class="stat-watchface-sub" id="s-avg-sub">lbs</div>
       </div>
     </div>
 
@@ -1576,10 +1630,10 @@
       <span class="edit-link" id="edit-link" style="display:none" onclick="showForm()">Edit today's entry</span>
     </div>
 
-    <!-- Weight Trend — full width, prominent -->
+    <!-- Weight Trend — given more vertical room in v2 -->
     <div class="card" style="margin-bottom:18px">
       <h2>Weight Trend</h2>
-      <div class="chart-wrap"><canvas id="chart-weight" height="320"></canvas></div>
+      <div class="chart-wrap"><canvas id="chart-weight" height="440"></canvas></div>
     </div>
 
     <!-- History -->
@@ -2562,30 +2616,34 @@ function renderWeight() {
   const jtEl = document.getElementById('journey-target');
   if (jtEl) jtEl.textContent = (CFG.bfTarget || 12) + '% BF';
 
-  // Stats — 3 focused cards: 7-day avg, total lost since start, avg loss/week since start
+  // Watchface stats v2: Today + 7-day avg with a small "lost since start" sub on the avg.
+  // Sparkline + s-lost + s-avg-rate elements removed from markup; drawWeightSparkline is
+  // safely a no-op when its element is absent. Old s-lost/s-avg-rate writes dropped.
   const avg = currentAvg(data.entries);
-  document.getElementById('s-avg').textContent = avg ? avg.toFixed(1)+' lbs' : '—';
+  const todayEntryNow = data.entries.find(e => e.date === td);
+  const todayWeight = todayEntryNow && todayEntryNow.weight;
 
-  // Sparkline: last 30 entries' weight trend, drawn into #s-avg-spark
+  // Today
+  const sTodayEl = document.getElementById('s-today');
+  const sTodaySubEl = document.getElementById('s-today-sub');
+  if (sTodayEl) sTodayEl.textContent = todayWeight ? Number(todayWeight).toFixed(1) : '—';
+  if (sTodaySubEl) sTodaySubEl.textContent = todayWeight ? 'lbs' : 'not logged yet';
+
+  // 7-day avg + delta-since-start subline
+  const sAvgEl = document.getElementById('s-avg');
+  const sAvgSubEl = document.getElementById('s-avg-sub');
+  if (sAvgEl) sAvgEl.textContent = avg != null ? avg.toFixed(1) : '—';
+  if (sAvgSubEl) {
+    if (avg != null && CFG.startWeight) {
+      const lost = CFG.startWeight - avg;
+      sAvgSubEl.textContent = 'lbs · ' + (lost >= 0 ? '↓ ' : '↑ ') + Math.abs(lost).toFixed(1) + ' since start';
+    } else {
+      sAvgSubEl.textContent = 'lbs';
+    }
+  }
+
+  // Keep the legacy sparkline call alive in case the element is reintroduced (no-op now).
   drawWeightSparkline(data.entries.slice(-30));
-
-  const lost = avg != null ? CFG.startWeight - avg : null;
-  const lostEl = document.getElementById('s-lost');
-  if (lost !== null) {
-    lostEl.textContent = (lost>=0?'−':'+')+Math.abs(lost).toFixed(1)+' lbs';
-  } else {
-    lostEl.textContent = '—';
-  }
-  // Average loss per week since start = total lost / weeks elapsed
-  const daysSinceStart = Math.max(1, daysBetween(CFG.startDate, td));
-  const weeksSinceStart = daysSinceStart / 7;
-  const avgRateEl = document.getElementById('s-avg-rate');
-  if (lost !== null && weeksSinceStart > 0) {
-    const perWeek = lost / weeksSinceStart; // positive if losing
-    avgRateEl.textContent = (perWeek>=0?'−':'+') + Math.abs(perWeek).toFixed(2) + ' lbs';
-  } else {
-    avgRateEl.textContent = '—';
-  }
 
   // Log form
   const todayEntry = data.entries.find(e=>e.date===td);
@@ -2631,18 +2689,13 @@ function logEntry() {
   // Phase 2: enqueue the write — flushes async via the queue, retries on failure.
   enqueueWrite('setWeight', newEntry);
   renderWeight();
-  // Animate the stat cards counting up
+  // Watchface v2 animations: only the two visible numbers — Today + 7-day avg.
+  // s-lost / s-avg-rate were dropped from markup, so their animateNumber calls were
+  // wasted math on a no-op (animateNumber null-guards missing elements).
   const newAvg = currentAvg(data.entries);
+  animateNumber('s-today', w, w, v => v.toFixed(1)); // pulse-only since value is the same
   if (newAvg != null) {
-    animateNumber('s-avg', prevAvg || newAvg, newAvg, v => v.toFixed(1) + ' lbs');
-    const lost = CFG.startWeight - newAvg;
-    const prevLost = prevAvg != null ? CFG.startWeight - prevAvg : lost;
-    animateNumber('s-lost', prevLost, lost, v => (v>=0?'−':'+') + Math.abs(v).toFixed(1) + ' lbs');
-    const daysSinceStart = Math.max(1, daysBetween(CFG.startDate, td));
-    const weeksSinceStart = daysSinceStart / 7;
-    const perWeek = lost / weeksSinceStart;
-    const prevPerWeek = prevLost / weeksSinceStart;
-    animateNumber('s-avg-rate', prevPerWeek, perWeek, v => (v>=0?'−':'+') + Math.abs(v).toFixed(2) + ' lbs');
+    animateNumber('s-avg', prevAvg || newAvg, newAvg, v => v.toFixed(1));
   }
 }
 
