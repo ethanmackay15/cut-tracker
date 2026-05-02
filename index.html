@@ -279,27 +279,28 @@
       letter-spacing: .08em; font-weight: 700; margin-top: 1px;
     }
 
-    /* ───── DEXA trends stats strip ───── */
-    .dexa-stats {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-      margin: 12px 0 18px;
+    /* ───── DEXA goal chip ─────
+       Small green pill in the DEXA card header, complementary to the dashed
+       target line on the chart. Visual nod to the 12% BF north-star. */
+    .dexa-goal-chip {
+      display: inline-flex; align-items: center;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #059669;
+      background: rgba(16,185,129,0.10);
+      border: 1px solid rgba(16,185,129,0.28);
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
-    @media(max-width:700px){ .dexa-stats { grid-template-columns: repeat(2, 1fr); } }
-    .dexa-stat {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 10px 12px;
+    .dexa-goal-chip::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #10b981;
+      margin-right: 6px;
+      box-shadow: 0 0 0 2px rgba(16,185,129,0.18);
     }
-    .dexa-stat-val {
-      font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2;
-      font-variant-numeric: tabular-nums;
-    }
-    .dexa-stat-lbl {
-      font-size: 0.65rem; color: var(--muted); text-transform: uppercase;
-      letter-spacing: .08em; font-weight: 700; margin-top: 2px;
-    }
-    .dexa-stat-sub { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
-    .dexa-delta-pos { color: #dc2626; }
-    .dexa-delta-neg { color: #059669; }
 
     /* DEXA add/edit modal */
     .dexa-modal-overlay {
@@ -1119,6 +1120,12 @@
       font-size:0.68rem; font-weight:700; cursor:default; position:relative;
     }
     .rc-day.blank { background:transparent; cursor:default; }
+    /* Days outside the formal 30-day window (logged runs that predate the
+       challenge start, or runs after day 30). Same green for done days, but
+       lighter for empty/missed cells so the formal window stays the focal
+       point of the grid. */
+    .rc-day.rc-outside { opacity: 0.72; }
+    .rc-day.rc-outside.done { opacity: 1; }
     .rc-day-date { font-size:0.52rem; font-weight:600; opacity:0.7; }
     .rc-day.done { background:var(--green); color:#fff; }
     .rc-day.missed { background:#fef2f2; color:#ef4444; }
@@ -1601,11 +1608,13 @@
 
     <!-- DEXA Body Composition (last 4 scans — post-collarbone window) -->
     <div class="card" style="margin-bottom:18px">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
-        <h2 style="margin-bottom:0">DEXA · Last 4 scans</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin-bottom:0">DEXA · Last 4 scans</h2>
+          <span class="dexa-goal-chip" id="dexa-goal-chip">Goal · 12% BF</span>
+        </div>
         <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add scan</button>
       </div>
-      <div class="dexa-stats" id="dexa-stats"></div>
       <div class="chart-wrap"><canvas id="chart-dexa"></canvas></div>
     </div>
 
@@ -5601,82 +5610,19 @@ function renderTrends() {
 
 function renderDexaSection() {
   const scans = getDexaScans();
-  renderDexaStats(scans);
-  renderDexaHistory(scans);
+  // 2026-05-02: stat-card strip removed per Ethan; chart now carries lean +
+  // fat alongside BF%. Goal chip in the card header replaces the "Target" stat.
   // 2026-05-01: chart shows only the last 4 scans (post-collarbone window).
-  // The full scan history bounced around too much across years; the recent
-  // window tells the recomp story Ethan actually cares about.
   drawDexaChart(scans.slice(-4));
+  // Update goal chip text from current CFG (in case bfTarget was edited).
+  const chip = document.getElementById('dexa-goal-chip');
+  if (chip) chip.textContent = 'Goal · ' + (CFG.bfTarget || 12) + '% BF';
 }
 
-function renderDexaStats(scans) {
-  const el = document.getElementById('dexa-stats');
-  if (!el) return;
-  if (!scans.length) { el.innerHTML = ''; return; }
-  const latest = scans[scans.length - 1];
-  const best   = scans.reduce((a, b) => a.bf <= b.bf ? a : b);
-  const first  = scans[0];
-  const dBf   = latest.bf   - first.bf;
-  const dLean = latest.lean - first.lean;
-  const dFat  = latest.fat  - first.fat;
-
-  const target = CFG.bfTarget || 12;
-  const toTarget = latest.bf - target;
-
-  const fmtDelta = (v, suf, flipColor) => {
-    const s = (v > 0 ? '+' : '') + v.toFixed(1) + suf;
-    const cls = Math.abs(v) < 0.05 ? '' :
-      (flipColor ? (v > 0 ? 'dexa-delta-neg' : 'dexa-delta-pos')  // for lean: up is good
-                 : (v > 0 ? 'dexa-delta-pos' : 'dexa-delta-neg')); // for bf/fat: up is bad
-    return `<span class="${cls}">${s}</span>`;
-  };
-
-  el.innerHTML = `
-    <div class="dexa-stat">
-      <div class="dexa-stat-val">${latest.bf.toFixed(1)}%</div>
-      <div class="dexa-stat-lbl">Latest BF</div>
-      <div class="dexa-stat-sub">${fmtDateShort(latest.date)}</div>
-    </div>
-    <div class="dexa-stat">
-      <div class="dexa-stat-val">${toTarget > 0 ? '−' : '+'}${Math.abs(toTarget).toFixed(1)}%</div>
-      <div class="dexa-stat-lbl">To Target (${target}%)</div>
-      <div class="dexa-stat-sub">${toTarget > 0 ? 'to go' : 'past target'}</div>
-    </div>
-    <div class="dexa-stat">
-      <div class="dexa-stat-val">${latest.lean.toFixed(1)} lbs</div>
-      <div class="dexa-stat-lbl">Lean Mass</div>
-      <div class="dexa-stat-sub">${fmtDelta(dLean, ' lbs', true)} since first scan</div>
-    </div>
-    <div class="dexa-stat">
-      <div class="dexa-stat-val">${latest.fat.toFixed(1)} lbs</div>
-      <div class="dexa-stat-lbl">Fat Mass</div>
-      <div class="dexa-stat-sub">Best BF: ${best.bf.toFixed(1)}% (${fmtDateShort(best.date)})</div>
-    </div>
-  `;
-}
-
-function renderDexaHistory(scans) {
-  const tbody = document.getElementById('dexa-history-body');
-  if (!tbody) return;
-  if (!scans.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No DEXA scans logged.</td></tr>';
-    return;
-  }
-  const rows = scans.slice().reverse(); // newest first
-  tbody.innerHTML = rows.map(s => `
-    <tr>
-      <td><strong>${fmtDateShort(s.date)}</strong></td>
-      <td style="text-align:right">${s.bf.toFixed(1)}%</td>
-      <td style="text-align:right">${s.fat.toFixed(1)}</td>
-      <td style="text-align:right">${s.lean.toFixed(1)}</td>
-      <td style="text-align:right">${s.total.toFixed(1)}</td>
-      <td style="text-align:right">
-        <button class="dexa-del-btn" title="Edit" onclick="openDexaForm('${s.date}')">✎</button>
-        <button class="dexa-del-btn" title="Delete" onclick="confirmDeleteDexa('${s.date}')">✕</button>
-      </td>
-    </tr>
-  `).join('');
-}
+// renderDexaStats / renderDexaHistory removed 2026-05-02 — the stat-card
+// strip and the history table are no longer in the markup. The chart now
+// carries lean + fat + BF % directly. Delete + edit are reachable via
+// "+ Add scan" → enter existing date → modal.
 
 function drawDexaChart(scans) {
   const canvas = document.getElementById('chart-dexa');
@@ -5684,63 +5630,97 @@ function drawDexaChart(scans) {
   if (dexaChart) { dexaChart.destroy(); dexaChart = null; }
   if (!scans.length) return;
 
-  const points = scans.map(s => ({
-    date: s.date + 'T12:00:00',
-    bf: s.bf, lean: s.lean, fat: s.fat
-  }));
+  const labels = scans.map(s => fmtDateShort(s.date));
+  const bfData    = scans.map(s => s.bf);
+  const leanData  = scans.map(s => s.lean);
+  const fatData   = scans.map(s => s.fat);
+  const target    = CFG.bfTarget || 12;
 
-  const target = CFG.bfTarget || 12;
-
-  // Simplified for the 4-scan view (2026-05-01): single-axis BF% chart with
-  // a target line. Dropped the dual-y-axis lean/fat lines — they made the
-  // chart busy on a 4-point series and BF % is the headline metric anyway
-  // ("the north star is a DEXA body-fat percentage target" per about-me).
-  // Use category scale for x (instead of time) so 4 evenly-spaced points
-  // read more cleanly than spans-across-months.
+  // 2026-05-02 (restore): three-line view — BF % on the left axis, Lean & Fat
+  // mass on the right axis. Plus a dashed target line at the BF goal. Stat
+  // cards above the chart were removed; the chart itself now carries the
+  // numbers via its data points + tooltip + legend.
+  //
+  // maintainAspectRatio:true (NOT false on a fixed-height wrapper) — see
+  // 2026-05-01 note re: Chart.js resize feedback loop on `.chart-wrap canvas
+  // { width:100% !important }`. Don't reintroduce the bug.
   dexaChart = new Chart(canvas, {
     type: 'line',
     data: {
-      labels: points.map(p => fmtDateShort(p.date.slice(0,10))),
+      labels,
       datasets: [
         {
           label: 'Body Fat %',
-          data: points.map(p => p.bf),
+          data: bfData,
           borderColor: '#ef4444',
           backgroundColor: 'rgba(239,68,68,.10)',
-          tension: .25,
-          pointRadius: 5, pointHoverRadius: 7,
+          yAxisID: 'yBf',
+          tension: .3,
+          pointRadius: 4, pointHoverRadius: 6,
           pointBackgroundColor: '#ef4444',
           borderWidth: 2.5,
-          fill: true,
+          fill: false,
+          order: 1,
         },
         {
-          label: `Target (${target}%)`,
-          data: points.map(_ => target),
-          borderColor: 'rgba(16,185,129,.55)',
-          borderDash: [6,4],
+          label: 'Lean Mass',
+          data: leanData,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,.10)',
+          yAxisID: 'yLbs',
+          tension: .3,
+          pointRadius: 3, pointHoverRadius: 5,
+          pointBackgroundColor: '#10b981',
+          borderWidth: 2,
+          fill: false,
+          order: 2,
+        },
+        {
+          label: 'Fat Mass',
+          data: fatData,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,.10)',
+          yAxisID: 'yLbs',
+          tension: .3,
+          pointRadius: 3, pointHoverRadius: 5,
+          pointBackgroundColor: '#f59e0b',
+          borderWidth: 2,
+          fill: false,
+          order: 3,
+        },
+        {
+          label: `BF Target (${target}%)`,
+          data: labels.map(() => target),
+          borderColor: 'rgba(16,185,129,.45)',
+          borderDash: [6, 4],
+          yAxisID: 'yBf',
           pointRadius: 0,
           borderWidth: 1.5,
           fill: false,
+          order: 4,
         },
       ]
     },
     options: {
       responsive: true,
-      // Use the same aspectRatio pattern as the Weight chart instead of a
-      // fixed-height wrapper. Background: maintainAspectRatio:false on a
-      // 240px wrapper combined with `.chart-wrap canvas { width:100% !important }`
-      // produces a Chart.js resize feedback loop where the canvas grows
-      // unboundedly (we observed a >20k-pixel canvas in 2026-05-01). Aspect
-      // ratio mode is what every other chart in the file uses; staying
-      // consistent here.
       maintainAspectRatio: true,
-      aspectRatio: window.innerWidth < 600 ? 1.6 : window.innerWidth < 1024 ? 2.4 : 2.8,
+      aspectRatio: window.innerWidth < 600 ? 1.4 : window.innerWidth < 1024 ? 2.0 : 2.4,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true, position: 'top',
+          labels: { boxWidth: 10, font: { size: 11 }, padding: 12, usePointStyle: true }
+        },
         tooltip: {
           callbacks: {
-            label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.raw).toFixed(1) + '%',
+            label: ctx => {
+              const v = ctx.raw;
+              const lbl = ctx.dataset.label || '';
+              if (lbl.startsWith('Body Fat') || lbl.startsWith('BF Target')) {
+                return ' ' + lbl + ': ' + Number(v).toFixed(1) + '%';
+              }
+              return ' ' + lbl + ': ' + Number(v).toFixed(1) + ' lbs';
+            }
           }
         }
       },
@@ -5749,13 +5729,21 @@ function drawDexaChart(scans) {
           grid: { display: false },
           ticks: { font: { size: 11 }, color: '#94a3b8' }
         },
-        y: {
+        yBf: {
+          type: 'linear', position: 'left',
           grid: { color: '#f1f5f9' },
-          ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => v + '%' },
-          // Pad the y-range a bit so the line doesn't hug the edges, and so
-          // the target line is visible even when actual BF is far above it.
-          suggestedMin: Math.min(target - 1, ...points.map(p => p.bf)) - 1,
-          suggestedMax: Math.max(...points.map(p => p.bf)) + 1,
+          ticks: { font: { size: 10 }, color: '#ef4444', callback: v => v + '%' },
+          // Pad so the line doesn't hug the edges and the target is visible
+          // even when actual BF is far above it.
+          suggestedMin: Math.min(target - 1, ...bfData) - 1,
+          suggestedMax: Math.max(...bfData) + 1,
+          title: { display: true, text: 'Body Fat %', font: { size: 10 }, color: '#ef4444' }
+        },
+        yLbs: {
+          type: 'linear', position: 'right',
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: '#10b981', callback: v => v + ' lbs' },
+          title: { display: true, text: 'Lean / Fat Mass', font: { size: 10 }, color: '#10b981' }
         }
       }
     }
@@ -6027,8 +6015,39 @@ function renderRunChallenge() {
     return;
   }
 
-  const allDays = rcGetAllDays(data.startDate);
-  const endDate = allDays[29];
+  const formalDays = rcGetAllDays(data.startDate);
+  const formalSet = new Set(formalDays);
+  const formalEnd = formalDays[29];
+
+  // 2026-05-02: extend the calendar window to include any logged runs that
+  // sit OUTSIDE the formal 30-day window — without this, runs from before
+  // startDate (e.g. the user has historical sheet data preceding the formal
+  // challenge start) silently disappear from the grid even though they're
+  // counted in `completed`. Calendar now spans:
+  //   start = min(startDate, earliest done entry)
+  //   end   = max(formalEnd, latest done entry, today)
+  // Day numbering ("Day N") still only applies inside the formal window.
+  const doneDates = Object.keys(data.entries)
+    .filter(d => data.entries[d] && data.entries[d].done)
+    .sort();
+  const earliestDone = doneDates[0];
+  const latestDone   = doneDates[doneDates.length - 1];
+  const displayStart = (earliestDone && earliestDone < data.startDate) ? earliestDone : data.startDate;
+  let   displayEnd   = formalEnd;
+  if (latestDone && latestDone > displayEnd) displayEnd = latestDone;
+  if (td > displayEnd) displayEnd = td;
+
+  const allDays = [];
+  {
+    const cursor = new Date(displayStart + 'T12:00:00');
+    const stop   = new Date(displayEnd   + 'T12:00:00');
+    while (cursor <= stop) {
+      allDays.push(cursor.toISOString().slice(0,10));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  const endDate = allDays[allDays.length - 1];
   const completed = rcCompletedCount(data);
   const challengeDay = rcDayNumber(td, data.startDate);
   const isActive = challengeDay >= 1 && challengeDay <= 30;
@@ -6064,9 +6083,10 @@ function renderRunChallenge() {
     </div>
   `;
 
-  // Month label(s) for the challenge period
+  // Month label(s) for the visible calendar range (may exceed the formal
+  // 30-day window if there are entries outside it).
   const rcStartDt = new Date(allDays[0] + 'T12:00:00');
-  const rcEndDt = new Date(allDays[29] + 'T12:00:00');
+  const rcEndDt = new Date(allDays[allDays.length - 1] + 'T12:00:00');
   const rcStartMonth = rcStartDt.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const rcEndMonth = rcEndDt.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const monthLabel = rcStartMonth === rcEndMonth ? rcStartMonth : `${rcStartDt.toLocaleDateString('en-US',{month:'short'})} – ${rcEndDt.toLocaleDateString('en-US',{month:'short',year:'numeric'})}`;
@@ -6083,24 +6103,32 @@ function renderRunChallenge() {
     html += '<div class="rc-day blank"></div>';
   }
 
-  allDays.forEach((date, i) => {
-    const dayNum = i + 1;
+  allDays.forEach((date) => {
+    const inFormalWindow = formalSet.has(date);
+    const dayNum = inFormalWindow ? rcDayNumber(date, data.startDate) : null;
     const entry = data.entries[date];
     const isDone = entry && entry.done;
     const isToday = date === td;
     const isFuture = date > td;
-    const isMissed = !isDone && !isFuture && !isToday;
+    // Days outside the formal window aren't "missed" in the challenge sense —
+    // they're just history. Only mark missed when inside the formal window
+    // and not done/future/today.
+    const isMissed = inFormalWindow && !isDone && !isFuture && !isToday;
     const isSelected = date === rcSelectedDate;
     let cls = 'rc-day';
     if (isDone) cls += ' done';
     else if (isToday) cls += ' today';
     else if (isFuture) cls += ' future';
     else if (isMissed) cls += ' missed';
+    if (!inFormalWindow) cls += ' rc-outside';
     if (isSelected && !isFuture) cls += ' selected';
     const pace = isDone ? rcCalcPace(entry.distance, entry.time) : '';
     const dt = new Date(date + 'T12:00:00');
     const dateLabel = dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const title = isDone ? `Day ${dayNum}: ${dateLabel} — ${entry.distance} mi, ${entry.time} (${pace}/mi)` : `Day ${dayNum}: ${dateLabel}`;
+    const dayLabel = dayNum != null ? `Day ${dayNum}` : 'Pre-challenge';
+    const title = isDone
+      ? `${dayLabel}: ${dateLabel} — ${entry.distance} mi, ${entry.time} (${pace}/mi)`
+      : `${dayLabel}: ${dateLabel}`;
     const clickable = !isFuture ? `onclick="rcSelectDay('${date}')" style="cursor:pointer"` : '';
     const dom = dt.getDate();
     let inner;
