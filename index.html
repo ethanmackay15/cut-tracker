@@ -1666,10 +1666,6 @@
          The header sync badge (top-right of every tab) is the single source
          of sync truth now. -->
 
-    <!-- Steps Import bar removed 2026-05-02 per Ethan's request. The
-         importStepsJSON() function is preserved in JS as dead code in case
-         the UI gets re-added later. -->
-
     <!-- Inspiration -->
     <div class="inspo">
       <img src="10256345_1003947152951883_5404304817066547595_o.webp" alt="Beach" />
@@ -2005,7 +2001,7 @@ async function sheetsGetJson(url, params) {
   return json;
 }
 
-// Cheap freshness probe — returns { weight, food, habits, steps, runChallenge }
+// Cheap freshness probe — returns { weight, food, habits, runChallenge, dexa }
 // each as ISO timestamp or null. Use to decide whether a tab needs refetch.
 async function fetchLastModified() {
   const url = getSheetsUrl(); if (!url) return null;
@@ -2072,7 +2068,6 @@ function _opToPayload(op, payload) {
     case 'setWeight':             return { action: 'sync', entries: [payload] };
     case 'deleteWeight':          return { action: 'delete', date: payload.date };
     case 'setHabit':              return { action: 'setHabit', entry: payload };
-    case 'setSteps':              return { action: 'syncSteps', entries: [payload] };
     case 'setRunChallengeForDate':   return { action: 'setRunChallengeForDate',    entry: payload };
     case 'deleteRunChallengeForDate':return { action: 'deleteRunChallengeForDate', date:  payload.date };
     case 'setDexa':                  return { action: 'setDexa',                   entry: payload };
@@ -2195,7 +2190,7 @@ setTimeout(() => { if (_readQueue().length > 0) flushQueue(); }, 1000);
 // We do NOT wipe localStorage — it stays as a write-through cache for instant
 // load. The queue is what keeps the sheet authoritative for new writes.
 // ═════════════════════════════════════════════════════════════════════════════
-async function runBackfillMigration({ weightRemote, foodRemote, habitsRemote, stepsRemote }) {
+async function runBackfillMigration({ weightRemote, foodRemote, habitsRemote }) {
   const MIG_KEY = 'migration_backfillToSheet_v1';
   if (localStorage.getItem(MIG_KEY)) return 0;
   let enqueued = 0;
@@ -2243,18 +2238,6 @@ async function runBackfillMigration({ weightRemote, foodRemote, habitsRemote, st
           enqueued++;
         }
       });
-    });
-  }
-
-  // Steps — keyed by date
-  if (Array.isArray(stepsRemote)) {
-    const remoteSet = new Set(stepsRemote.map(e => e.date));
-    const local = (typeof getStepsData === 'function' ? getStepsData() : {});
-    Object.keys(local).forEach(date => {
-      if (!remoteSet.has(date) && local[date]) {
-        enqueueWrite('setSteps', { date, steps: local[date] });
-        enqueued++;
-      }
     });
   }
 
@@ -3097,12 +3080,13 @@ async function syncOnVisibility(forceEvenIfHidden) {
   }
   updateSyncUI('yellow', 'Re-syncing...');
   try {
-    // Pull all 7 domains so everything stays in sync across devices.
-    // Library was previously init-only, which meant a manual refresh (or PWA
-    // resume) never picked up new foods added to the sheet. 2026-05-02: added
-    // pullFoodLibraryFromSheets so the sync badge actually refreshes it.
-    const [remote, foodRemote, libraryData, habitsRemote, stepsRemote, _rc, dexaRemote] = await Promise.all([
-      pullFromSheets(), pullFoodFromSheets(), pullFoodLibraryFromSheets(), pullHabitsFromSheets(), pullStepsFromSheets(), pullRCFromSheets(), pullDexaFromSheets()
+    // Pull all 6 domains so everything stays in sync across devices.
+    // (Was 7 — steps removed 2026-05-02.) Library was previously init-only,
+    // which meant a manual refresh (or PWA resume) never picked up new foods
+    // added to the sheet. 2026-05-02: added pullFoodLibraryFromSheets so the
+    // sync badge actually refreshes it.
+    const [remote, foodRemote, libraryData, habitsRemote, _rc, dexaRemote] = await Promise.all([
+      pullFromSheets(), pullFoodFromSheets(), pullFoodLibraryFromSheets(), pullHabitsFromSheets(), pullRCFromSheets(), pullDexaFromSheets()
     ]);
     if (remote) {
       const local = load();
@@ -3120,11 +3104,6 @@ async function syncOnVisibility(forceEvenIfHidden) {
       const localHabits = getHabitsData();
       const mergedHabits = mergeHabitsData(localHabits, habitsRemote);
       if (JSON.stringify(mergedHabits) !== JSON.stringify(localHabits)) saveHabitsData(mergedHabits);
-    }
-    if (stepsRemote && stepsRemote.length) {
-      const localSteps = getStepsData();
-      const mergedSteps = mergeStepsData(localSteps, stepsRemote);
-      if (JSON.stringify(mergedSteps) !== JSON.stringify(localSteps)) saveStepsData(mergedSteps);
     }
     if (dexaRemote) {
       const localDexa = getDexaScans();
@@ -3264,9 +3243,9 @@ function ensureTodayMealPlan() {
   const sheetsUrl = getSheetsUrl();
   if (sheetsUrl) {
     updateSyncUI('yellow','Connecting to Google Sheets...');
-    // Pull weight, food entries, food library, habits, steps, run challenge, and DEXA in parallel
-    const [remote, foodRemote, libraryData, habitsRemote, stepsRemote, _rc, dexaRemote] = await Promise.all([
-      pullFromSheets(), pullFoodFromSheets(), pullFoodLibraryFromSheets(), pullHabitsFromSheets(), pullStepsFromSheets(),
+    // Pull weight, food entries, food library, habits, run challenge, and DEXA in parallel
+    const [remote, foodRemote, libraryData, habitsRemote, _rc, dexaRemote] = await Promise.all([
+      pullFromSheets(), pullFoodFromSheets(), pullFoodLibraryFromSheets(), pullHabitsFromSheets(),
       pullRCFromSheets(), pullDexaFromSheets()
     ]);
     if (remote) {
@@ -3283,11 +3262,6 @@ function ensureTodayMealPlan() {
       const localHabits = getHabitsData();
       const mergedHabits = mergeHabitsData(localHabits, habitsRemote);
       if (JSON.stringify(mergedHabits) !== JSON.stringify(localHabits)) saveHabitsData(mergedHabits);
-    }
-    if (stepsRemote && stepsRemote.length) {
-      const localSteps = getStepsData();
-      const mergedSteps = mergeStepsData(localSteps, stepsRemote);
-      if (JSON.stringify(mergedSteps) !== JSON.stringify(localSteps)) saveStepsData(mergedSteps);
     }
     if (dexaRemote) {
       const localDexa = getDexaScans();
@@ -3313,7 +3287,7 @@ function ensureTodayMealPlan() {
     // Runs AFTER pull-merge so we have remote sets to diff against. Don't await:
     // the queue handles this in the background and we don't want to block init.
     runBackfillMigration({
-      weightRemote: remote, foodRemote, habitsRemote, stepsRemote
+      weightRemote: remote, foodRemote, habitsRemote
     }).catch(() => {});
   }
   // Initialize food sync button state
@@ -4530,7 +4504,6 @@ function mergeFoodEntries(local, remote) {
 
 
 // ─── Habits ──────────────────────────────────────────────────────────────────
-const STEPS_KEY = 'steps_tracker_v1';
 const HABITS_KEY = 'habits_tracker_v1';
 const HABITS_LIST_KEY = 'habits_list_v1';
 const DEFAULT_HABITS = ['exercise', 'meditation', 'stretch', 'vacuums', 'water'];
@@ -5169,101 +5142,10 @@ async function pullHabitsFromSheets() {
   } catch(e) { return null; }
 }
 
-// ── Steps from Sheets ────────────────────────────────────────────────────────
-function getStepsData() {
-  try { return JSON.parse(localStorage.getItem(STEPS_KEY)) || {}; }
-  catch(e) { return {}; }
-}
-function saveStepsData(data) { safeSetItem(STEPS_KEY, JSON.stringify(data)); }
-
-async function pullStepsFromSheets() {
-  const url = getSheetsUrl();
-  if (!url) return null;
-  try {
-    const res = await fetch(url + '?type=steps');
-    const data = await res.json();
-    if (!data.ok || !Array.isArray(data.entries)) return null;
-    return data.entries;
-  } catch(e) { return null; }
-}
-
-function mergeStepsData(local, remoteEntries) {
-  // ARCHITECTURAL FIX (2026-04-29 evening): when queue is idle, sheet is truth.
-  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remoteEntries)) {
-    const out = {};
-    remoteEntries.forEach(e => { if (e.date) out[e.date] = Number(e.steps) || 0; });
-    return out;
-  }
-  const merged = { ...local };
-  remoteEntries.forEach(e => {
-    if (e.date) merged[e.date] = Number(e.steps) || 0;
-  });
-  return merged;
-}
-
-// Import steps from a JSON file (output of parse-steps.js).
-// Steps Import UI was removed 2026-05-02 — function preserved as dead code in
-// case it's needed later. All `label.textContent = ...` writes are now
-// null-safe so the function won't crash if called without the UI present.
-async function importStepsJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const label = document.getElementById('steps-import-label');
-  const setLabel = txt => { if (label) label.textContent = txt; };
-
-  try {
-    const text = await file.text();
-    const entries = JSON.parse(text);
-    if (!Array.isArray(entries) || !entries.length || !entries[0].date || entries[0].steps === undefined) {
-      showToast('Invalid steps JSON format');
-      return;
-    }
-
-    // Save to localStorage
-    const local = getStepsData();
-    const merged = mergeStepsData(local, entries);
-    saveStepsData(merged);
-    setLabel(`${entries.length} days loaded locally`);
-    showToast(`Loaded ${entries.length} days of step data`);
-
-    // Push to Sheets in batches
-    const url = getSheetsUrl();
-    if (!url) {
-      showToast('Steps saved locally — add Sheets URL to sync');
-      renderTrends();
-      event.target.value = '';
-      return;
-    }
-
-    setLabel(`Syncing ${entries.length} days to Sheets...`);
-    const BATCH = 100;
-    let pushed = 0;
-    for (let i = 0; i < entries.length; i += BATCH) {
-      const batch = entries.slice(i, i + BATCH);
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'syncSteps', entries: batch }),
-          redirect: 'follow',
-        });
-        pushed += batch.length;
-        setLabel(`Synced ${pushed}/${entries.length} days...`);
-      } catch (err) {
-        console.error('Steps sync batch error:', err);
-      }
-    }
-
-    setLabel(`✓ ${pushed} days synced to Sheets`);
-    showToast(`Synced ${pushed} days of steps to Sheets`);
-    renderTrends();
-  } catch (err) {
-    console.error('Steps import error:', err);
-    showToast('Error importing steps: ' + err.message);
-    setLabel('import from Apple Health');
-  }
-  event.target.value = '';
-}
+// Steps tracking removed 2026-05-02 — no clean Apple Health import path. The
+// dead `renderTrends` body (further down) still references step data; it
+// already gates everything on a non-existent `panel-trends` element so the
+// orphan refs are unreachable. If Trends ever comes back, scrub steps then.
 
 function mergeHabitsData(local, remoteEntries) {
   // ARCHITECTURAL FIX (2026-04-29 evening): when queue is idle, sheet is truth.
