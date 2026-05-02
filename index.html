@@ -1304,6 +1304,78 @@
       .habit-nav-date { font-size:1.1rem; }
     }
 
+    /* ───── Journal (added 2026-05-02) ───── */
+    #journal-card .journal-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    #journal-card .journal-count {
+      font-size: 0.75rem; color: var(--muted); font-weight: 500;
+    }
+    .journal-input-row {
+      display: flex; gap: 8px; align-items: stretch;
+    }
+    #journal-input {
+      flex: 1; resize: vertical; min-height: 44px; max-height: 200px;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-family: inherit; font-size: 0.95rem; background: var(--bg);
+      color: var(--text); transition: border-color 0.15s, background 0.15s;
+    }
+    #journal-input:focus {
+      outline: none; border-color: var(--accent); background: var(--card);
+    }
+    .journal-add-btn {
+      padding: 0 18px; background: var(--primary); color: #fff;
+      border: 0; border-radius: 8px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 600; white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .journal-add-btn:hover { background: var(--primary-2); }
+    .journal-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .journal-list {
+      display: flex; flex-direction: column; gap: 6px; margin-top: 12px;
+    }
+    .journal-empty {
+      font-size: 0.85rem; color: var(--muted); padding: 6px 0;
+    }
+    .journal-entry {
+      display: flex; gap: 10px; padding: 8px 10px;
+      background: var(--bg); border-radius: 6px;
+      font-size: 0.92rem; line-height: 1.45;
+      align-items: flex-start;
+    }
+    .journal-entry .journal-time {
+      font-size: 0.72rem; color: var(--muted); white-space: nowrap;
+      flex-shrink: 0; min-width: 56px; padding-top: 2px;
+      font-variant-numeric: tabular-nums; font-weight: 600;
+    }
+    .journal-entry .journal-text {
+      flex: 1; word-break: break-word; white-space: pre-wrap;
+    }
+    .journal-entry .journal-actions {
+      display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .journal-entry:hover .journal-actions,
+    .journal-entry:focus-within .journal-actions { opacity: 1; }
+    @media (hover: none) { .journal-entry .journal-actions { opacity: 0.6; } }
+    .journal-action-btn {
+      background: none; border: 0; cursor: pointer;
+      padding: 2px 6px; color: var(--muted); font-size: 0.95rem;
+      line-height: 1; border-radius: 4px;
+    }
+    .journal-action-btn:hover { color: var(--accent); background: var(--card); }
+    .journal-history-toggle {
+      background: none; border: 0; color: var(--accent);
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      padding: 8px 0 2px; margin-top: 4px;
+    }
+    .journal-history-toggle:hover { text-decoration: underline; }
+    .journal-day-header {
+      font-size: 0.7rem; color: var(--muted); margin: 10px 0 4px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+    }
+
   </style>
 <link rel="icon" type="image/png" href="appicon2.png">
 </head>
@@ -1694,6 +1766,22 @@
       <button class="btn-sync refresh" id="habit-refresh-btn" onclick="refreshHabitsFromSheets()">Refresh from Sheets</button>
     </div>
 
+    <!-- Journal — free-form notes timestamped to-the-minute, cross-referenced
+         with WHOOP / weight / habits when answering personal-assistant questions -->
+    <div class="card" id="journal-card">
+      <div class="journal-header">
+        <h2>📓 Journal</h2>
+        <span class="journal-count" id="journal-count"></span>
+      </div>
+      <div class="journal-input-row">
+        <textarea id="journal-input" placeholder="Jot down anything — sleep, food, mood, stress, physical sensations…" rows="2" onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter')addJournalNote()"></textarea>
+        <button class="journal-add-btn" onclick="addJournalNote()">Add</button>
+      </div>
+      <div id="journal-today-list" class="journal-list"></div>
+      <button class="journal-history-toggle" id="journal-history-btn" onclick="toggleJournalHistory()" hidden>Show history ▾</button>
+      <div id="journal-history-list" class="journal-list" hidden></div>
+    </div>
+
     <!-- Today's habits -->
     <div class="card">
       <h2>Today's Habits</h2>
@@ -2072,6 +2160,9 @@ function _opToPayload(op, payload) {
     case 'deleteRunChallengeForDate':return { action: 'deleteRunChallengeForDate', date:  payload.date };
     case 'setDexa':                  return { action: 'setDexa',                   entry: payload };
     case 'deleteDexa':               return { action: 'deleteDexa',                date:  payload.date };
+    case 'addJournal':               return { action: 'addJournal',                entry: payload };
+    case 'updateJournal':            return { action: 'updateJournal',             entry: payload };
+    case 'deleteJournal':            return { action: 'deleteJournal',             timestamp: payload.timestamp };
     default: throw new Error('Unknown queue op: ' + op);
   }
 }
@@ -6203,6 +6294,196 @@ renderHabits = function() {
 
 // Initial render from localStorage (Sheets pull happens in main boot sequence)
 renderRunChallenge();
+
+// ══════════════════════════════════════════════════════════════════════════
+// JOURNAL (added 2026-05-02)
+// Free-form notes timestamped to-the-minute. Stored locally in
+// JOURNAL_KEY, mirrored to the "Journal" sheet tab via the queue.
+// Used by Claude for cross-referencing health/fitness questions with WHOOP,
+// weight, and habits data.
+// ══════════════════════════════════════════════════════════════════════════
+const JOURNAL_KEY = 'journal_entries_v1';
+let journalHistoryVisible = false;
+
+function getJournalDataLocal() {
+  try { return JSON.parse(localStorage.getItem(JOURNAL_KEY)) || []; }
+  catch(e) { return []; }
+}
+function saveJournalDataLocal(entries) {
+  try { safeSetItem(JOURNAL_KEY, JSON.stringify(entries)); }
+  catch(e) { console.error('saveJournalDataLocal:', e); }
+}
+
+function addJournalNote() {
+  const input = document.getElementById('journal-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  const now = new Date();
+  const entry = {
+    timestamp: now.toISOString(),
+    date:      today(),  // YYYY-MM-DD in local TZ
+    text:      text
+  };
+  const entries = getJournalDataLocal();
+  entries.unshift(entry);
+  saveJournalDataLocal(entries);
+  input.value = '';
+  if (typeof enqueueWrite === 'function') enqueueWrite('addJournal', entry);
+  renderJournal();
+}
+
+function deleteJournalNote(timestamp) {
+  if (!confirm('Delete this entry?')) return;
+  const entries = getJournalDataLocal().filter(e => e.timestamp !== timestamp);
+  saveJournalDataLocal(entries);
+  if (typeof enqueueWrite === 'function') enqueueWrite('deleteJournal', { timestamp });
+  renderJournal();
+}
+
+function editJournalNote(timestamp) {
+  const entries = getJournalDataLocal();
+  const e = entries.find(x => x.timestamp === timestamp);
+  if (!e) return;
+  const newText = prompt('Edit entry:', e.text);
+  if (newText === null) return;
+  const trimmed = newText.trim();
+  if (!trimmed) return deleteJournalNote(timestamp);
+  e.text = trimmed;
+  saveJournalDataLocal(entries);
+  if (typeof enqueueWrite === 'function') enqueueWrite('updateJournal', e);
+  renderJournal();
+}
+
+function toggleJournalHistory() {
+  journalHistoryVisible = !journalHistoryVisible;
+  renderJournal();
+}
+
+function journalRowHtml(e) {
+  const t = new Date(e.timestamp);
+  const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                   .toLowerCase().replace(' ', '');
+  const tsAttr = (e.timestamp || '').replace(/'/g, "&#39;");
+  return '<div class="journal-entry">' +
+    '<span class="journal-time">' + esc(timeStr) + '</span>' +
+    '<span class="journal-text">' + esc(e.text) + '</span>' +
+    '<span class="journal-actions">' +
+      '<button class="journal-action-btn" title="Edit" onclick="editJournalNote(\'' + tsAttr + '\')">✎</button>' +
+      '<button class="journal-action-btn" title="Delete" onclick="deleteJournalNote(\'' + tsAttr + '\')">×</button>' +
+    '</span>' +
+  '</div>';
+}
+
+function renderJournal() {
+  const todayList   = document.getElementById('journal-today-list');
+  const historyList = document.getElementById('journal-history-list');
+  const historyBtn  = document.getElementById('journal-history-btn');
+  const countEl     = document.getElementById('journal-count');
+  if (!todayList) return;
+
+  const entries = getJournalDataLocal();
+  const td = today();
+  const todayEntries = entries.filter(e => e.date === td);
+  const olderEntries = entries.filter(e => e.date !== td);
+
+  todayList.innerHTML = todayEntries.length
+    ? todayEntries.map(journalRowHtml).join('')
+    : '<div class="journal-empty">No entries yet today.</div>';
+
+  if (countEl) {
+    countEl.textContent = todayEntries.length === 1
+      ? '1 entry today'
+      : todayEntries.length > 1
+        ? todayEntries.length + ' entries today'
+        : '';
+  }
+
+  if (historyBtn) {
+    historyBtn.hidden = olderEntries.length === 0;
+    historyBtn.textContent = journalHistoryVisible
+      ? 'Hide history ▴'
+      : 'Show history (' + olderEntries.length + ') ▾';
+  }
+  if (historyList) {
+    historyList.hidden = !journalHistoryVisible;
+    if (journalHistoryVisible) {
+      const byDate = {};
+      olderEntries.forEach(e => {
+        if (!byDate[e.date]) byDate[e.date] = [];
+        byDate[e.date].push(e);
+      });
+      const sortedDates = Object.keys(byDate).sort().reverse();
+      historyList.innerHTML = sortedDates.map(d => {
+        const dt = new Date(d + 'T12:00:00').toLocaleDateString('en-US',
+                     { month: 'short', day: 'numeric', weekday: 'short' });
+        return '<div class="journal-day-header">' + esc(dt) + '</div>' +
+               byDate[d].map(journalRowHtml).join('');
+      }).join('');
+    }
+  }
+}
+
+async function pullJournalFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url + '?type=journal');
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.entries)) return null;
+    return data.entries;
+  } catch(e) { return null; }
+}
+
+function mergeJournalEntries(local, remote) {
+  // When queue is idle, sheet is the source of truth.
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remote)) {
+    return [...remote].sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+  }
+  const map = {};
+  (remote || []).forEach(e => { if (e.timestamp) map[e.timestamp] = e; });
+  (local || []).forEach(e => { if (e.timestamp && !map[e.timestamp]) map[e.timestamp] = e; });
+  return Object.values(map).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+}
+
+// Pull on init + sync — wire into existing flows
+(function attachJournalToSyncFlows() {
+  const url = (typeof getSheetsUrl === 'function') ? getSheetsUrl() : null;
+  // Initial render from localStorage (so the box is interactive even offline)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderJournal);
+  } else {
+    renderJournal();
+  }
+  // Background sheet sync
+  if (url) {
+    pullJournalFromSheets().then(remote => {
+      if (!remote) return;
+      const merged = mergeJournalEntries(getJournalDataLocal(), remote);
+      saveJournalDataLocal(merged);
+      renderJournal();
+    });
+  }
+})();
+
+// Hook into syncOnVisibility — when the user returns to the tab, refresh
+// the journal too. Wraps the existing function rather than editing it.
+if (typeof syncOnVisibility === 'function') {
+  const origSyncOnVisibility = syncOnVisibility;
+  syncOnVisibility = async function() {
+    await origSyncOnVisibility.apply(this, arguments);
+    try {
+      const remote = await pullJournalFromSheets();
+      if (remote) {
+        const merged = mergeJournalEntries(getJournalDataLocal(), remote);
+        if (JSON.stringify(merged) !== JSON.stringify(getJournalDataLocal())) {
+          saveJournalDataLocal(merged);
+          renderJournal();
+        }
+      }
+    } catch(e) { /* swallow — non-critical */ }
+  };
+}
 </script>
 </body>
 </html>
