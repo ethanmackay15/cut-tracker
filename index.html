@@ -429,6 +429,15 @@
     .btn-delete:hover { color: var(--red); background: #fff1f2; }
     .btn-edit:hover { color: var(--primary); background: #eff6ff; }
     .note-input { width: 100%; padding: 4px 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 0.82rem; font-family: inherit; background: #fff; outline: none; }
+    /* Log History collapse/expand toggle */
+    .history-toggle-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 0.8rem; font-weight: 600; color: var(--primary);
+      padding: 6px 14px; border-radius: 999px;
+      transition: background .15s, color .15s;
+    }
+    .history-toggle-btn:hover { background: rgba(99,102,241,0.08); }
+    .history-toggle-btn:active { transform: scale(0.97); }
     .btn-save { background: none; border: none; cursor: pointer; padding: 4px 6px; color: var(--green); border-radius: 6px; font-size: 1rem; line-height: 1; transition: color .15s, background .15s; }
     .btn-save:hover { background: #f0fdf4; }
 
@@ -1650,34 +1659,16 @@
       <div class="history-wrap" id="history-wrap"></div>
     </div>
 
-    <!-- Backup nudge (shown when >7 days since last export) -->
-    <div class="backup-nudge" id="backup-nudge" style="display:none">
-      <span>⚠ It's been <strong id="nudge-days">—</strong> days since your last backup.</span>
-      <button onclick="exportData()">Back up now</button>
-    </div>
+    <!-- Backup nudge + Backup bar removed 2026-05-02 per Ethan's request:
+         everything is in Google Sheets now, so the local export/import flow
+         is redundant. exportData() / importData() / updateBackupStatus()
+         remain in JS as dead code in case Ethan ever wants the bar back.
+         The header sync badge (top-right of every tab) is the single source
+         of sync truth now. -->
 
-    <!-- Backup bar -->
-    <div class="backup-bar">
-      <span><strong>📦 Data backup</strong> — <span id="last-export-label">never exported</span></span>
-      <div class="sync-badge" id="sync-badge-el" onclick="manualForceRefresh()" title="Click to force a refresh from Google Sheets">
-        <span class="sync-dot gray" id="sync-badge-dot"></span>
-        <span id="sync-badge-msg">No Sheets link</span>
-      </div>
-      <button class="btn-sm btn-export" onclick="exportData()">⬇ Export backup</button>
-      <label class="btn-sm btn-import" style="cursor:pointer">
-        ⬆ Import backup
-        <input type="file" id="import-file" accept=".json" onchange="importData(event)" />
-      </label>
-    </div>
-
-    <!-- Steps Import -->
-    <div class="backup-bar" style="margin-top:8px;">
-      <span><strong>🏃 Steps data</strong> — <span id="steps-import-label">import from Apple Health</span></span>
-      <label class="btn-sm btn-import" style="cursor:pointer">
-        ⬆ Import steps JSON
-        <input type="file" id="steps-import-file" accept=".json" onchange="importStepsJSON(event)" style="display:none" />
-      </label>
-    </div>
+    <!-- Steps Import bar removed 2026-05-02 per Ethan's request. The
+         importStepsJSON() function is preserved in JS as dead code in case
+         the UI gets re-added later. -->
 
     <!-- Inspiration -->
     <div class="inspo">
@@ -2164,8 +2155,10 @@ function _updateQueueStatusUI() {
       const failedCount = q.filter(it => (it.attempt || 0) >= QUEUE_MAX_ATTEMPTS).length;
       updateSyncUI('red', 'Sync error — ' + failedCount + ' failed');
     } else {
-      // idle: only refresh badge if it currently shows a queue-driven message
-      const msg = document.getElementById('sync-badge-msg');
+      // idle: only refresh badge if it currently shows a queue-driven message.
+      // 2026-05-02: switched from sync-badge-msg (now removed with the in-tab
+      // backup bar) to header-sync-msg, the always-visible top-right badge.
+      const msg = document.getElementById('header-sync-msg');
       if (msg && /Saving|Sync error/.test(msg.textContent)) {
         updateSyncUI('green', 'Synced just now');
       }
@@ -2884,13 +2877,28 @@ function deleteEntry(date) {
 }
 
 // ─── History ──────────────────────────────────────────────────────────────────
+// Collapse state: by default show only the last 7 weigh-ins. User toggles to
+// see the full list. State is in-memory only — resets on reload, which is the
+// desired UX (history defaults to compact every time the user opens the tab).
+const HISTORY_COLLAPSED_LIMIT = 7;
+let historyExpanded = false;
+
+function toggleHistoryExpanded() {
+  historyExpanded = !historyExpanded;
+  renderHistory(load());
+}
+
 function renderHistory(data) {
   const el = document.getElementById('history-wrap');
   const entries = [...data.entries].filter(e=>e.weight).reverse();
   if (!entries.length) { el.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px 0">No entries yet — start logging!</p>'; return; }
   const all = data.entries;
+  const total = entries.length;
+  const visible = historyExpanded ? entries : entries.slice(0, HISTORY_COLLAPSED_LIMIT);
+  const hiddenCount = total - visible.length;
+
   let html = `<table><thead><tr><th>Date</th><th>Weight</th><th>vs Prior</th><th>7-Day Avg</th><th>Notes</th><th></th></tr></thead><tbody>`;
-  entries.forEach(e=>{
+  visible.forEach(e=>{
     const avg=rollingAvg(all,e.date);
     const idx=all.findIndex(x=>x.date===e.date);
     const prior=all.slice(0,idx).reverse().find(x=>x.weight);
@@ -2909,6 +2917,19 @@ function renderHistory(data) {
       </td></tr>`;
   });
   html += '</tbody></table>';
+
+  // Toggle row — only show when there's actually something to expand/collapse
+  if (total > HISTORY_COLLAPSED_LIMIT) {
+    const btnLabel = historyExpanded
+      ? `Show less`
+      : `Show all ${total} entries`;
+    html += `
+      <div style="text-align:center;margin-top:12px">
+        <button class="history-toggle-btn" onclick="toggleHistoryExpanded()">${btnLabel}</button>
+      </div>
+    `;
+  }
+
   el.innerHTML = html;
 }
 
@@ -5180,11 +5201,15 @@ function mergeStepsData(local, remoteEntries) {
   return merged;
 }
 
-// Import steps from a JSON file (output of parse-steps.js)
+// Import steps from a JSON file (output of parse-steps.js).
+// Steps Import UI was removed 2026-05-02 — function preserved as dead code in
+// case it's needed later. All `label.textContent = ...` writes are now
+// null-safe so the function won't crash if called without the UI present.
 async function importStepsJSON(event) {
   const file = event.target.files[0];
   if (!file) return;
   const label = document.getElementById('steps-import-label');
+  const setLabel = txt => { if (label) label.textContent = txt; };
 
   try {
     const text = await file.text();
@@ -5198,7 +5223,7 @@ async function importStepsJSON(event) {
     const local = getStepsData();
     const merged = mergeStepsData(local, entries);
     saveStepsData(merged);
-    label.textContent = `${entries.length} days loaded locally`;
+    setLabel(`${entries.length} days loaded locally`);
     showToast(`Loaded ${entries.length} days of step data`);
 
     // Push to Sheets in batches
@@ -5210,7 +5235,7 @@ async function importStepsJSON(event) {
       return;
     }
 
-    label.textContent = `Syncing ${entries.length} days to Sheets...`;
+    setLabel(`Syncing ${entries.length} days to Sheets...`);
     const BATCH = 100;
     let pushed = 0;
     for (let i = 0; i < entries.length; i += BATCH) {
@@ -5223,19 +5248,19 @@ async function importStepsJSON(event) {
           redirect: 'follow',
         });
         pushed += batch.length;
-        label.textContent = `Synced ${pushed}/${entries.length} days...`;
+        setLabel(`Synced ${pushed}/${entries.length} days...`);
       } catch (err) {
         console.error('Steps sync batch error:', err);
       }
     }
 
-    label.textContent = `✓ ${pushed} days synced to Sheets`;
+    setLabel(`✓ ${pushed} days synced to Sheets`);
     showToast(`Synced ${pushed} days of steps to Sheets`);
     renderTrends();
   } catch (err) {
     console.error('Steps import error:', err);
     showToast('Error importing steps: ' + err.message);
-    label.textContent = 'import from Apple Health';
+    setLabel('import from Apple Health');
   }
   event.target.value = '';
 }
