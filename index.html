@@ -47,32 +47,11 @@
       padding-bottom: 80px;
     }
 
-    /* ───── Saturday override ───── */
-    body.sat { background: linear-gradient(135deg, #fff7ed 0%, #fef9c3 40%, #fce7f3 100%); }
-    body.sat .card { background: rgba(255,255,255,0.82); backdrop-filter: blur(6px); }
-    body.sat .progress-fill { background: linear-gradient(90deg, #fb923c, #ec4899); }
-    body.sat .btn { background: linear-gradient(135deg, #fb923c, #ec4899); }
-    body.sat .stat-primary { color: #f97316; }
-    body.sat .tab-active { color: #f97316 !important; }
-    body.sat input:focus, body.sat textarea:focus { border-color: #f97316; }
-
     /* ───── Layout ───── */
     .wrap { max-width: 600px; margin: 0 auto; padding: 16px 16px 24px; }
     @media(min-width:768px){ .wrap { max-width: 760px; } }
     @media(min-width:1024px){ .wrap { max-width: 900px; padding: 24px 32px 32px; } }
     @media(min-width:1280px){ .wrap { max-width: 1040px; } }
-
-    /* ───── Saturday banner ───── */
-    #sat-banner {
-      display: none;
-      background: linear-gradient(135deg, #fb923c, #ec4899);
-      color: #fff; text-align: center; padding: 14px 20px;
-      border-radius: var(--radius); margin-bottom: 24px;
-      font-size: 1.1rem; font-weight: 700; letter-spacing: 0.2px;
-      animation: glow 2.4s ease-in-out infinite;
-    }
-    body.sat #sat-banner { display: block; }
-    @keyframes glow { 0%,100%{box-shadow:0 0 0 rgba(251,146,60,0)} 50%{box-shadow:0 0 22px rgba(251,146,60,.55)} }
 
     /* ───── Header ───── */
     /* Watchface aesthetic v2 (2026-04-30): thin top strip, no app brand banner.
@@ -85,7 +64,6 @@
       font-size: 0.7rem; font-weight: 600; color: var(--muted);
       text-transform: uppercase; letter-spacing: 1.5px;
     }
-    body.sat .header .date-label { color: #ea580c; }
     /* h1 + .sub no longer present in markup; selectors removed. */
 
     /* Sync badge: text + dot pill on the right of the header strip. */
@@ -129,10 +107,6 @@
     .stat-watchface-sub {
       font-size: 0.75rem; color: var(--muted);
       margin-top: 8px; min-height: 16px;
-    }
-    body.sat .stat-watchface-val {
-      background: linear-gradient(135deg, #f97316, #ec4899);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     @media(max-width:380px){ .stat-watchface-val { font-size: 2.6rem; } }
 
@@ -189,9 +163,6 @@
       transform: translateX(-50%);
       border-radius: 2px;
     }
-    body.sat .tab-active { color: #ea580c !important; }
-    body.sat .tab-active::after { background: #ea580c; }
-
     /* ───── Tab Panels ───── */
     .panel { display: none; }
     .panel.active { display: block; }
@@ -206,7 +177,6 @@
     }
     .sub-tab:hover { color: var(--text); }
     .sub-tab-active { background: var(--primary) !important; color: #fff !important; }
-    body.sat .sub-tab-active { background: linear-gradient(135deg,#fb923c,#ec4899) !important; }
     .sub-panel { display: none; }
     .sub-panel.active { display: block; }
 
@@ -445,7 +415,6 @@
     th { padding: 8px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 2px solid var(--border); }
     td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
     tr:last-child td { border-bottom: none; }
-    tr.sat-row td { background: #fff7ed; }
     tr.best-row td { background: #f0fdf4; }
     .tag { display:inline-block; background:#fef3c7; color:#d97706; border-radius:4px; padding:1px 6px; font-size:0.72rem; font-weight:700; margin-left:4px; }
     .tag-green { background:#dcfce7; color:#16a34a; }
@@ -508,7 +477,6 @@
       padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
       margin-bottom: 18px; flex-wrap: wrap;
     }
-    body.sat .backup-bar { background: rgba(255,255,255,0.82); }
     .backup-bar span { font-size: 0.85rem; color: var(--muted); flex: 1; min-width: 160px; }
     .backup-bar span strong { color: var(--text); }
     .btn-sm {
@@ -517,7 +485,6 @@
       transition: transform .15s, box-shadow .2s; white-space: nowrap;
     }
     .btn-export { background: var(--primary); color: #fff; }
-    body.sat .btn-export { background: linear-gradient(135deg,#fb923c,#ec4899); }
     .btn-import { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
     .btn-sm:hover { transform: translateY(-1px); }
     #import-file { display: none; }
@@ -549,7 +516,6 @@
       padding: 10px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
       margin-bottom: 18px; font-size: 0.82rem; color: var(--muted);
     }
-    body.sat .sync-bar { background: rgba(255,255,255,0.82); }
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .sync-dot.green { background: #10b981; }
     .sync-dot.yellow { background: #f59e0b; animation: pulse-dot 1.2s infinite; }
@@ -607,7 +573,6 @@
       content: ''; position: absolute; bottom: 0; left: 0; right: 0;
       height: 50%; background: linear-gradient(to top, rgba(241,245,249,0.95) 0%, transparent 100%); pointer-events: none;
     }
-    body.sat .inspo::after { background: linear-gradient(to top, rgba(255,247,237,0.95) 0%, transparent 100%); }
     .inspo-text { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--muted); letter-spacing: 0.3px; z-index: 1; }
 
     /* ───── Sync status badge ───── */
@@ -817,7 +782,6 @@
       transform:translateY(-50%);
       width:6px; height:6px; border-radius:50%; background:var(--text);
     }
-    body.sat .food-meal-time-pill.has-food::after { background:#f97316; }
     .food-meal-dot-spacer {
       width:14px; flex-shrink:0; position:relative; z-index:1;
     }
@@ -959,8 +923,6 @@
     .tr-range-btn { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); padding: 6px 14px; }
     .tr-range-btn:hover { color: var(--text); background: var(--border); }
     .tr-range-active { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; border-radius:8px; }
-    body.sat .tr-range-active { background: linear-gradient(135deg,#fb923c,#ec4899) !important; border-color: #fb923c !important; }
-
     /* ───── Habits Tab ───── */
     .habit-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
     .habit-nav-btn { background:none; border:none; border-radius:10px; width:44px; height:44px; font-size:1.6rem; cursor:pointer; color:var(--muted); display:flex; align-items:center; justify-content:center; }
@@ -978,7 +940,6 @@
       font-size:1rem; flex-shrink:0; transition:all .2s; margin-top:2px;
     }
     .habit-toggle.done { background:var(--primary); border-color:var(--primary); color:#fff; }
-    body.sat .habit-toggle.done { background:linear-gradient(135deg,#fb923c,#ec4899); border-color:#fb923c; }
 
     /* Countable habit (water etc.) — counter UI instead of toggle. */
     .habit-counter { align-items:center; }
@@ -992,10 +953,7 @@
     }
     .habit-counter.done .habit-counter-num,
     .habit-counter.done .habit-counter-target { color:var(--green); }
-    body.sat .habit-counter.done .habit-counter-num,
-    body.sat .habit-counter.done .habit-counter-target { color:#ea580c; }
     .habit-counter .habit-counter-check { margin-left:6px; color:var(--green); font-weight:700; }
-    body.sat .habit-counter .habit-counter-check { color:#ea580c; }
     .habit-counter .habit-counter-sub {
       display:block; font-size:0.72rem; color:var(--muted); margin-top:2px;
     }
@@ -1015,7 +973,6 @@
     .habit-counter-plus {
       background:var(--text); color:var(--card); border-color:var(--text);
     }
-    body.sat .habit-counter-plus { background:#ea580c; border-color:#ea580c; }
     .habit-info { flex:1; min-width:0; }
     .habit-name { font-size:0.95rem; font-weight:600; color:var(--text); display:block; margin-bottom:2px; text-transform:capitalize; }
     .habit-duration { font-size:0.78rem; color:var(--muted); margin-top:2px; }
@@ -1047,7 +1004,6 @@
       cursor:pointer; color:#fff; background:var(--primary);
       white-space:nowrap; transition:opacity .15s;
     }
-    body.sat .habit-add-btn { background:linear-gradient(135deg,#fb923c,#ec4899); }
     .habit-add-btn:hover { opacity:0.85; }
 
     /* ── 7-Day Goals (with progress rings + sparklines) ──────────────────── */
@@ -1077,7 +1033,6 @@
       transition:stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1);
     }
     .streak-ring-fill.behind { stroke:#fb7185; }   /* warm rose for behind-target — softer than pure red */
-    body.sat .streak-ring-fill { stroke:#fb923c; }
     .streak-ring-center {
       position:absolute; inset:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -1088,8 +1043,6 @@
     }
     .streak-ring-num.on-track { color:var(--green); }
     .streak-ring-num.behind { color:#e11d48; }
-    body.sat .streak-ring-num.on-track { color:#10b981; }
-    body.sat .streak-ring-num.behind { color:#f43f5e; }
     .streak-ring-target {
       font-size:0.55rem; font-weight:600; color:var(--muted);
       letter-spacing:0.3px; margin-top:1px;
@@ -1102,9 +1055,7 @@
       transition:background 0.2s;
     }
     .streak-spark-dot.done { background:var(--green); }
-    body.sat .streak-spark-dot.done { background:#fb923c; }
     .streak-spark-dot.today { box-shadow:0 0 0 2px var(--card); outline:1.5px solid var(--text); outline-offset:0; }
-    body.sat .streak-spark-dot.today { outline-color:#f97316; }
     .streak-card .streak-30d {
       font-size:0.7rem; color:var(--muted); font-weight:600;
       padding-top:6px; border-top:1px solid var(--border); width:100%;
@@ -1126,11 +1077,9 @@
       transition:transform 0.15s;
     }
     .hm-sq.done { background:linear-gradient(180deg, #14c592 0%, var(--green) 100%); box-shadow:inset 0 -1px 0 rgba(0,0,0,.06); }
-    body.sat .hm-sq.done { background:linear-gradient(180deg, #fdbb74 0%, #fb923c 100%); }
     .hm-sq.missed { background:var(--border); opacity:0.6; }
     .hm-sq.future { background:transparent; border:1.5px dashed #e2e8f0; }
     .hm-sq.today { box-shadow:0 0 0 2px var(--primary); }
-    body.sat .hm-sq.today { box-shadow:0 0 0 2px #fb923c; }
     .hm-sq.done.today { box-shadow:0 0 0 2px var(--primary), inset 0 -1px 0 rgba(0,0,0,.06); }
     .hm-dates { display:flex; justify-content:space-between; margin-top:4px; }
     .hm-dates span { font-size:0.65rem; color:var(--muted); }
@@ -1147,7 +1096,6 @@
     .rc-badge.active { background:#ecfdf5; color:#059669; }
     .rc-badge.complete { background:#dbeafe; color:#2563eb; }
     .rc-badge.not-started { background:var(--bg); color:var(--muted); }
-    body.sat .rc-badge.active { background:#fff7ed; color:#ea580c; }
 
     .rc-progress-wrap { margin-bottom:16px; }
     .rc-progress-label { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
@@ -1158,7 +1106,6 @@
       height:100%; border-radius:999px; transition:width .6s cubic-bezier(.4,0,.2,1);
       background:linear-gradient(90deg, #10b981, #059669);
     }
-    body.sat .rc-progress-fill { background:linear-gradient(90deg, #fb923c, #ec4899); }
 
     .rc-day-grid {
       display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-bottom:16px;
@@ -1174,15 +1121,11 @@
     .rc-day.blank { background:transparent; cursor:default; }
     .rc-day-date { font-size:0.52rem; font-weight:600; opacity:0.7; }
     .rc-day.done { background:var(--green); color:#fff; }
-    body.sat .rc-day.done { background:#fb923c; }
     .rc-day.missed { background:#fef2f2; color:#ef4444; }
     .rc-day.today { box-shadow:0 0 0 2px var(--primary); background:var(--bg); color:var(--text); }
-    body.sat .rc-day.today { box-shadow:0 0 0 2px #fb923c; }
     .rc-day.future { background:var(--bg); color:var(--muted); }
     .rc-day.today.done { box-shadow:0 0 0 2px var(--green); }
-    body.sat .rc-day.today.done { box-shadow:0 0 0 2px #fb923c; }
     .rc-day.selected { box-shadow:0 0 0 2px var(--accent); }
-    body.sat .rc-day.selected { box-shadow:0 0 0 2px #fb923c; }
     .rc-day.done { flex-direction:column; gap:0; line-height:1.1; padding:2px 0; }
     .rc-day-num { font-size:0.62rem; font-weight:700; }
     .rc-day-pace { font-size:0.52rem; font-weight:600; opacity:0.85; }
@@ -1198,12 +1141,10 @@
       width:110px;
     }
     .rc-field input:focus { border-color:var(--primary); background:#fff; }
-    body.sat .rc-field input:focus { border-color:#fb923c; }
     .rc-log-btn {
       padding:9px 16px; border:none; border-radius:8px; font-size:0.85rem; font-weight:700;
       cursor:pointer; color:#fff; background:var(--green); white-space:nowrap; transition:opacity .15s;
     }
-    body.sat .rc-log-btn { background:linear-gradient(135deg,#fb923c,#ec4899); }
     .rc-log-btn:hover { opacity:0.85; }
     .rc-log-btn:disabled { opacity:0.5; cursor:not-allowed; }
     .rc-logged-msg { font-size:0.82rem; color:var(--green); font-weight:600; display:flex; align-items:center; gap:6px; }
@@ -1218,18 +1159,15 @@
       background: linear-gradient(90deg, var(--green), #34d399 60%, rgba(52,211,153,0));
     }
     .rc-stat .rc-stat-val { font-size:1.5rem; font-weight:800; color:var(--primary); letter-spacing:-0.4px; font-variant-numeric:tabular-nums; }
-    body.sat .rc-stat .rc-stat-val { color:#f97316; }
     .rc-stat .rc-stat-label { font-size:0.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; font-weight:700; }
     /* Slightly enrich completed run cells so faster paces feel more 'achieved' */
     .rc-day.done { background:linear-gradient(160deg, #14c592 0%, var(--green) 100%); box-shadow:0 1px 2px rgba(16,185,129,0.25); }
-    body.sat .rc-day.done { background:linear-gradient(160deg, #fdbb74 0%, #fb923c 100%); }
 
     .rc-start-section { text-align:center; padding:10px 0; }
     .rc-start-btn {
       padding:12px 28px; border:none; border-radius:10px; font-size:0.95rem; font-weight:700;
       cursor:pointer; color:#fff; background:var(--green); transition:opacity .15s;
     }
-    body.sat .rc-start-btn { background:linear-gradient(135deg,#fb923c,#ec4899); }
     .rc-start-btn:hover { opacity:0.85; }
     .rc-start-hint { font-size:0.75rem; color:var(--muted); margin-top:8px; }
 
@@ -1243,7 +1181,6 @@
       background:var(--bg); border-radius:12px; padding:14px; text-align:center;
     }
     .insight-stat .is-val { font-size:1.5rem; font-weight:800; color:var(--primary); line-height:1.1; }
-    body.sat .insight-stat .is-val { color:#f97316; }
     .insight-stat .is-label { font-size:0.72rem; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.3px; font-weight:600; }
     .insight-stat .is-sub { font-size:0.7rem; color:var(--muted); margin-top:2px; }
 
@@ -1266,10 +1203,6 @@
     .iy-cell.c2 { background:#22c55e; }
     .iy-cell.c3 { background:#15803d; }
     .iy-cell.c4 { background:#14532d; }
-    body.sat .iy-cell.c1 { background:#fed7aa; }
-    body.sat .iy-cell.c2 { background:#fb923c; }
-    body.sat .iy-cell.c3 { background:#ea580c; }
-    body.sat .iy-cell.c4 { background:#9a3412; }
     .iy-cell.empty { background:transparent; }
     .iy-cell.future { background:transparent; border:1px dashed var(--border); }
     .iy-months { display:flex; gap:2px; margin-top:3px; width:100%; }
@@ -1287,15 +1220,11 @@
     .insights-habit-toggle button.active {
       border-color:var(--primary); background:var(--primary); color:#fff; border-radius:20px;
     }
-    body.sat .insights-habit-toggle button.active {
-      border-color:#fb923c; background:#fb923c;
-    }
 
     .insights-best-months { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px; margin-top:14px; }
     .ibm-card { background:var(--bg); border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:10px; }
     .ibm-habit { font-size:0.78rem; font-weight:700; text-transform:capitalize; color:var(--text); flex:1; }
     .ibm-month { font-size:0.82rem; font-weight:800; color:var(--primary); }
-    body.sat .ibm-month { color:#f97316; }
     .ibm-detail { font-size:0.68rem; color:var(--muted); }
 
     /* Habit sync bar */
@@ -1439,8 +1368,6 @@
 </div>
 
 <div class="wrap">
-  <div id="sat-banner">🎉 Saturday! Treat day — you've earned every bite. Enjoy it! 🍦</div>
-
   <div class="header">
     <div class="date-label" id="header-date-label"></div>
     <div class="header-sync" id="header-sync-el" onclick="manualForceRefresh()" title="Click to force a refresh from Google Sheets">
@@ -1672,35 +1599,19 @@
       <div class="chart-wrap"><canvas id="chart-weight" height="440"></canvas></div>
     </div>
 
-    <!-- DEXA Body Composition (moved here from Trends tab 2026-05-01) -->
+    <!-- DEXA Body Composition (last 4 scans — post-collarbone window) -->
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
-        <h2 style="margin-bottom:0">DEXA Body Composition</h2>
-        <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add Scan</button>
+        <h2 style="margin-bottom:0">DEXA · Last 4 scans</h2>
+        <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add scan</button>
       </div>
       <div class="dexa-stats" id="dexa-stats"></div>
-      <div class="chart-wrap"><canvas id="chart-dexa" height="240"></canvas></div>
+      <div class="chart-wrap"><canvas id="chart-dexa"></canvas></div>
     </div>
 
-    <!-- DEXA scan history table -->
-    <div class="card" style="margin-bottom:18px">
-      <h2>DEXA Scan History</h2>
-      <div class="history-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th style="text-align:right">BF %</th>
-              <th style="text-align:right">Fat (lbs)</th>
-              <th style="text-align:right">Lean (lbs)</th>
-              <th style="text-align:right">Total (lbs)</th>
-              <th style="width:60px"></th>
-            </tr>
-          </thead>
-          <tbody id="dexa-history-body"></tbody>
-        </table>
-      </div>
-    </div>
+    <!-- DEXA Scan History table removed 2026-05-01: redundant with the 4-scan chart.
+         Edit + delete are reachable via "+ Add scan" → enter existing date → modal
+         opens with the scan loaded; the modal now also has a Delete button. -->
 
     <!-- DEXA add/edit modal -->
     <div class="dexa-modal-overlay" id="dexa-modal-overlay" onclick="closeDexaForm(event)">
@@ -1714,9 +1625,12 @@
           <div><label>Total Mass (lbs)</label><input type="number" id="dexa-f-total" step="0.1" min="0" max="500" /></div>
           <div><label>BMC (lbs, optional)</label><input type="number" id="dexa-f-bmc" step="0.1" min="0" max="30" /></div>
         </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-          <button class="btn-sm" onclick="closeDexaForm()">Cancel</button>
-          <button class="btn-sm" onclick="saveDexaForm()" style="background:var(--primary);color:#fff;border:none">Save Scan</button>
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:14px">
+          <button class="btn-sm" id="dexa-delete-btn" style="display:none;background:#fee2e2;color:#b91c1c;border:none" onclick="deleteEditingDexa()">Delete scan</button>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button class="btn-sm" onclick="closeDexaForm()">Cancel</button>
+            <button class="btn-sm" onclick="saveDexaForm()" style="background:var(--primary);color:#fff;border:none">Save scan</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1955,7 +1869,6 @@ const LAST_SYNC_KEY   = 'cut_tracker_last_sync';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-const isSat = d => new Date(d + 'T12:00:00').getDay() === 6;
 const daysBetween = (a, b) => Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00')) / 86400000);
 const addDays = (d, n) => { const dt = new Date(d+'T12:00:00'); dt.setDate(dt.getDate()+n); return dt.toISOString().slice(0,10); };
 const fmtDate = d => { const dt = new Date(d+'T12:00:00'); return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); };
@@ -2619,11 +2532,6 @@ function renderWeight() {
   const data = load();
   const td = today();
 
-  // Saturday mode
-  const previewSat = new URLSearchParams(window.location.search).get('preview') === 'saturday';
-  if (isSat(td) || previewSat) document.body.classList.add('sat');
-  else document.body.classList.remove('sat');
-
   // Journey chip — week number since start
   const journeyStart = new Date('2026-03-15T12:00:00');
   const todayDate = new Date(td + 'T12:00:00');
@@ -2748,9 +2656,8 @@ function drawWeightChart(data) {
   if (weightChartInst) { weightChartInst.destroy(); weightChartInst = null; }
 
   const entries = data.entries.filter(e=>e.weight).sort((a,b)=>a.date.localeCompare(b.date));
-  const saturday = document.body.classList.contains('sat');
-  const dotColor = saturday ? '#f97316' : '#6366f1';
-  const lineColor = saturday ? '#ec4899' : '#8b5cf6';
+  const dotColor = '#6366f1';
+  const lineColor = '#8b5cf6';
 
   if (!entries.length) {
     // Empty state — render a simple message via a plugin
@@ -2788,9 +2695,9 @@ function drawWeightChart(data) {
   const paceEndWeight   = Math.max(CFG.goalWeight, CFG.startWeight - (CFG.goalRate * daysShown / 7));
   const endDate         = chartEnd; // where the pace line terminates on the chart
 
-  // Daily weight dots — color Saturdays differently
+  // Daily weight dots — uniform color (Saturday treat-day theme removed).
   const dailyDots = entries.map(e => ({ x:e.date, y:e.weight }));
-  const dotColors = entries.map(e => isSat(e.date) ? '#f97316' : dotColor);
+  const dotColors = entries.map(_ => dotColor);
 
   // 7-day rolling average line
   const avgPts = [];
@@ -2869,7 +2776,7 @@ function drawWeightChart(data) {
         },
         tooltip: {
           callbacks: {
-            title: ctx => ctx[0] ? fmtDate(ctx[0].raw.x) + (isSat(ctx[0].raw.x) ? ' 🎉' : '') : '',
+            title: ctx => ctx[0] ? fmtDate(ctx[0].raw.x) : '',
             label: ctx => {
               if (ctx.dataset.label === 'Goal Pace') return ' Goal: ' + ctx.raw.y.toFixed(1) + ' lbs';
               return ' ' + ctx.raw.y.toFixed(1) + ' lbs';
@@ -2969,14 +2876,13 @@ function renderHistory(data) {
   const all = data.entries;
   let html = `<table><thead><tr><th>Date</th><th>Weight</th><th>vs Prior</th><th>7-Day Avg</th><th>Notes</th><th></th></tr></thead><tbody>`;
   entries.forEach(e=>{
-    const sat=isSat(e.date);
     const avg=rollingAvg(all,e.date);
     const idx=all.findIndex(x=>x.date===e.date);
     const prior=all.slice(0,idx).reverse().find(x=>x.weight);
     const delta=prior?e.weight-prior.weight:null;
     const dStr=delta!==null?`<span style="color:${delta<=0?'#10b981':'#f43f5e'}">${delta>0?'+':''}${delta.toFixed(1)}</span>`:'—';
-    html+=`<tr class="${sat?'sat-row':''}">
-      <td id="date-${e.date}">${fmtDate(e.date)}${sat?'<span class="tag">🎉 treat</span>':''}</td>
+    html+=`<tr>
+      <td id="date-${e.date}">${fmtDate(e.date)}</td>
       <td><strong>${e.weight}</strong> lbs</td>
       <td>${dStr}</td>
       <td>${avg?avg.toFixed(1)+' lbs':'—'}</td>
@@ -3264,10 +3170,7 @@ function ensureTodayMealPlan() {
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 (async function init(){
-  // Saturday check globally
   const td = today();
-  const previewSat = new URLSearchParams(window.location.search).get('preview') === 'saturday';
-  if (isSat(td) || previewSat) document.body.classList.add('sat');
 
   // Set date label in header (MacroFactor style)
   const headerDateEl = document.getElementById('header-date-label');
@@ -5677,7 +5580,10 @@ function renderDexaSection() {
   const scans = getDexaScans();
   renderDexaStats(scans);
   renderDexaHistory(scans);
-  drawDexaChart(scans);
+  // 2026-05-01: chart shows only the last 4 scans (post-collarbone window).
+  // The full scan history bounced around too much across years; the recent
+  // window tells the recomp story Ethan actually cares about.
+  drawDexaChart(scans.slice(-4));
 }
 
 function renderDexaStats(scans) {
@@ -5762,91 +5668,71 @@ function drawDexaChart(scans) {
 
   const target = CFG.bfTarget || 12;
 
+  // Simplified for the 4-scan view (2026-05-01): single-axis BF% chart with
+  // a target line. Dropped the dual-y-axis lean/fat lines — they made the
+  // chart busy on a 4-point series and BF % is the headline metric anyway
+  // ("the north star is a DEXA body-fat percentage target" per about-me).
+  // Use category scale for x (instead of time) so 4 evenly-spaced points
+  // read more cleanly than spans-across-months.
   dexaChart = new Chart(canvas, {
     type: 'line',
     data: {
+      labels: points.map(p => fmtDateShort(p.date.slice(0,10))),
       datasets: [
         {
           label: 'Body Fat %',
-          data: points.map(p => ({ x: p.date, y: p.bf })),
+          data: points.map(p => p.bf),
           borderColor: '#ef4444',
-          backgroundColor: 'rgba(239,68,68,.12)',
-          yAxisID: 'yBf',
-          tension: .3,
-          pointRadius: 4, pointHoverRadius: 6,
+          backgroundColor: 'rgba(239,68,68,.10)',
+          tension: .25,
+          pointRadius: 5, pointHoverRadius: 7,
+          pointBackgroundColor: '#ef4444',
           borderWidth: 2.5,
-          fill: false
+          fill: true,
         },
         {
-          label: 'Lean Mass',
-          data: points.map(p => ({ x: p.date, y: p.lean })),
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16,185,129,.12)',
-          yAxisID: 'yLbs',
-          tension: .3,
-          pointRadius: 3, pointHoverRadius: 5,
-          borderWidth: 2,
-          fill: false
-        },
-        {
-          label: 'Fat Mass',
-          data: points.map(p => ({ x: p.date, y: p.fat })),
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245,158,11,.12)',
-          yAxisID: 'yLbs',
-          tension: .3,
-          pointRadius: 3, pointHoverRadius: 5,
-          borderWidth: 2,
-          fill: false
-        },
-        {
-          label: `BF Target (${target}%)`,
-          data: points.map(p => ({ x: p.date, y: target })),
-          borderColor: 'rgba(239,68,68,.35)',
+          label: `Target (${target}%)`,
+          data: points.map(_ => target),
+          borderColor: 'rgba(16,185,129,.55)',
           borderDash: [6,4],
-          yAxisID: 'yBf',
           pointRadius: 0,
           borderWidth: 1.5,
-          fill: false
-        }
+          fill: false,
+        },
       ]
     },
     options: {
       responsive: true,
+      // Use the same aspectRatio pattern as the Weight chart instead of a
+      // fixed-height wrapper. Background: maintainAspectRatio:false on a
+      // 240px wrapper combined with `.chart-wrap canvas { width:100% !important }`
+      // produces a Chart.js resize feedback loop where the canvas grows
+      // unboundedly (we observed a >20k-pixel canvas in 2026-05-01). Aspect
+      // ratio mode is what every other chart in the file uses; staying
+      // consistent here.
       maintainAspectRatio: true,
-      aspectRatio: window.innerWidth < 600 ? 1.2 : window.innerWidth < 1024 ? 1.6 : 1.5,
+      aspectRatio: window.innerWidth < 600 ? 1.6 : window.innerWidth < 1024 ? 2.4 : 2.8,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            label: ctx => {
-              const v = ctx.raw.y;
-              if (ctx.dataset.label.startsWith('Body Fat') || ctx.dataset.label.startsWith('BF Target'))
-                return ' ' + ctx.dataset.label + ': ' + v.toFixed(1) + '%';
-              return ' ' + ctx.dataset.label + ': ' + v.toFixed(1) + ' lbs';
-            }
+            label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.raw).toFixed(1) + '%',
           }
         }
       },
       scales: {
         x: {
-          type: 'time',
-          time: { unit: 'month', tooltipFormat: 'MMM d, yyyy', displayFormats: { month: 'MMM yyyy' } },
           grid: { display: false },
-          ticks: { font: { size: 10 }, color: '#94a3b8', maxRotation: 30 }
+          ticks: { font: { size: 11 }, color: '#94a3b8' }
         },
-        yBf: {
-          type: 'linear', position: 'left',
+        y: {
           grid: { color: '#f1f5f9' },
-          ticks: { font: { size: 10 }, color: '#ef4444', callback: v => v + '%' },
-          title: { display: true, text: 'Body Fat %', font: { size: 10 }, color: '#ef4444' }
-        },
-        yLbs: {
-          type: 'linear', position: 'right',
-          grid: { display: false },
-          ticks: { font: { size: 10 }, color: '#10b981', callback: v => v + ' lbs' },
-          title: { display: true, text: 'Lean / Fat Mass', font: { size: 10 }, color: '#10b981' }
+          ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => v + '%' },
+          // Pad the y-range a bit so the line doesn't hug the edges, and so
+          // the target line is visible even when actual BF is far above it.
+          suggestedMin: Math.min(target - 1, ...points.map(p => p.bf)) - 1,
+          suggestedMax: Math.max(...points.map(p => p.bf)) + 1,
         }
       }
     }
@@ -5855,33 +5741,84 @@ function drawDexaChart(scans) {
 
 // ── Add/edit modal ──
 let dexaEditingDate = null;
+
+// Toggle the modal between Add and Edit states. Centralized so it works whether
+// the modal was opened via "+ Add scan" or by typing an existing date.
+function _setDexaModalEditState(isEditing) {
+  const title = document.getElementById('dexa-modal-title');
+  const delBtn = document.getElementById('dexa-delete-btn');
+  if (title) title.textContent = isEditing ? 'Edit DEXA scan' : 'Add DEXA scan';
+  if (delBtn) delBtn.style.display = isEditing ? '' : 'none';
+}
+
 function openDexaForm(date) {
   dexaEditingDate = date || null;
-  const title = document.getElementById('dexa-modal-title');
   const overlay = document.getElementById('dexa-modal-overlay');
   const fields = ['date','bf','fat','lean','total','bmc'];
   fields.forEach(f => { const el = document.getElementById('dexa-f-' + f); if (el) el.value = ''; });
   if (date) {
     const s = getDexaScans().find(x => x.date === date);
     if (s) {
-      title.textContent = 'Edit DEXA Scan';
       document.getElementById('dexa-f-date').value  = s.date;
       document.getElementById('dexa-f-bf').value    = s.bf;
       document.getElementById('dexa-f-fat').value   = s.fat;
       document.getElementById('dexa-f-lean').value  = s.lean;
       document.getElementById('dexa-f-total').value = s.total;
       document.getElementById('dexa-f-bmc').value   = s.bmc || '';
+      _setDexaModalEditState(true);
+    } else {
+      _setDexaModalEditState(false);
     }
   } else {
-    title.textContent = 'Add DEXA Scan';
     document.getElementById('dexa-f-date').value = today();
+    _setDexaModalEditState(false);
   }
   overlay.classList.add('open');
+  // Wire the date field to auto-load existing scans on input.
+  const dateEl = document.getElementById('dexa-f-date');
+  if (dateEl && !dateEl._dexaWired) {
+    dateEl.addEventListener('input', _onDexaDateChange);
+    dateEl._dexaWired = true;
+  }
 }
+
+// When the user types/edits the date in the modal, detect whether a scan
+// already exists at that date and switch to Edit mode (with Delete button).
+function _onDexaDateChange() {
+  const date = document.getElementById('dexa-f-date').value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    dexaEditingDate = null;
+    _setDexaModalEditState(false);
+    return;
+  }
+  const s = getDexaScans().find(x => x.date === date);
+  if (s) {
+    dexaEditingDate = date;
+    document.getElementById('dexa-f-bf').value    = s.bf;
+    document.getElementById('dexa-f-fat').value   = s.fat;
+    document.getElementById('dexa-f-lean').value  = s.lean;
+    document.getElementById('dexa-f-total').value = s.total;
+    document.getElementById('dexa-f-bmc').value   = s.bmc || '';
+    _setDexaModalEditState(true);
+  } else {
+    dexaEditingDate = null;
+    _setDexaModalEditState(false);
+  }
+}
+
+function deleteEditingDexa() {
+  if (!dexaEditingDate) return;
+  if (!confirm('Delete DEXA scan from ' + fmtDateShort(dexaEditingDate) + '?')) return;
+  deleteDexaScan(dexaEditingDate);
+  closeDexaForm();
+  renderDexaSection();
+}
+
 function closeDexaForm(ev) {
   if (ev && ev.target && ev.target.id !== 'dexa-modal-overlay' && ev.type === 'click') { /* outside click */ }
   document.getElementById('dexa-modal-overlay').classList.remove('open');
   dexaEditingDate = null;
+  _setDexaModalEditState(false);
 }
 function saveDexaForm() {
   const date  = document.getElementById('dexa-f-date').value.trim();
