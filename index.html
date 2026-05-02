@@ -1454,7 +1454,6 @@
     <button class="tab" id="tab-weight" onclick="switchTab('weight')">Weight</button>
     <button class="tab" id="tab-food"   onclick="switchTab('food')">Food</button>
     <button class="tab tab-active" id="tab-habits" onclick="switchTab('habits')">Habits</button>
-    <button class="tab" id="tab-trends" onclick="switchTab('trends')">Trends</button>
   </div>
 
   <!-- ════════════════════════════════════════════════
@@ -1673,6 +1672,55 @@
       <div class="chart-wrap"><canvas id="chart-weight" height="440"></canvas></div>
     </div>
 
+    <!-- DEXA Body Composition (moved here from Trends tab 2026-05-01) -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+        <h2 style="margin-bottom:0">DEXA Body Composition</h2>
+        <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add Scan</button>
+      </div>
+      <div class="dexa-stats" id="dexa-stats"></div>
+      <div class="chart-wrap"><canvas id="chart-dexa" height="240"></canvas></div>
+    </div>
+
+    <!-- DEXA scan history table -->
+    <div class="card" style="margin-bottom:18px">
+      <h2>DEXA Scan History</h2>
+      <div class="history-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th style="text-align:right">BF %</th>
+              <th style="text-align:right">Fat (lbs)</th>
+              <th style="text-align:right">Lean (lbs)</th>
+              <th style="text-align:right">Total (lbs)</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="dexa-history-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEXA add/edit modal -->
+    <div class="dexa-modal-overlay" id="dexa-modal-overlay" onclick="closeDexaForm(event)">
+      <div class="dexa-modal" onclick="event.stopPropagation()">
+        <h2 id="dexa-modal-title" style="margin-top:0">Add DEXA Scan</h2>
+        <div class="dexa-form-grid">
+          <div><label>Date</label><input type="text" id="dexa-f-date" placeholder="YYYY-MM-DD" /></div>
+          <div><label>Body Fat %</label><input type="number" id="dexa-f-bf" step="0.1" min="3" max="60" /></div>
+          <div><label>Fat Tissue (lbs)</label><input type="number" id="dexa-f-fat" step="0.1" min="0" max="200" /></div>
+          <div><label>Lean Tissue (lbs)</label><input type="number" id="dexa-f-lean" step="0.1" min="0" max="300" /></div>
+          <div><label>Total Mass (lbs)</label><input type="number" id="dexa-f-total" step="0.1" min="0" max="500" /></div>
+          <div><label>BMC (lbs, optional)</label><input type="number" id="dexa-f-bmc" step="0.1" min="0" max="30" /></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+          <button class="btn-sm" onclick="closeDexaForm()">Cancel</button>
+          <button class="btn-sm" onclick="saveDexaForm()" style="background:var(--primary);color:#fff;border:none">Save Scan</button>
+        </div>
+      </div>
+    </div>
+
     <!-- History -->
     <div class="card">
       <h2>Log History</h2>
@@ -1778,118 +1826,8 @@
   <!-- ════════════════════════════════════════════════
        PANEL: Trends
   ════════════════════════════════════════════════ -->
-  <div class="panel" id="panel-trends">
-
-    <!-- Range selector -->
-    <div class="card" style="padding:14px 20px;margin-bottom:0">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <h2 style="margin-bottom:0">Calorie &amp; Weight Trends</h2>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
-          <div style="display:flex;gap:6px">
-            <button class="btn-sm tr-range-btn" id="tr-7"   onclick="setTrendsRange(7)">7d</button>
-            <button class="btn-sm tr-range-btn" id="tr-30"  onclick="setTrendsRange(30)">30d</button>
-            <button class="btn-sm tr-range-btn" id="tr-90"  onclick="setTrendsRange(90)">90d</button>
-            <button class="btn-sm tr-range-btn tr-range-active" id="tr-all" onclick="setTrendsRange(0)">All</button>
-          </div>
-          <span style="font-size:0.65rem;color:var(--muted);letter-spacing:.3px">chart &amp; table range</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary stats -->
-    <div class="stats" style="margin-top:18px;grid-template-columns:repeat(2,1fr)">
-      <div class="stat">
-        <div class="stat-val stat-primary" id="tr-avg-cal">—</div>
-        <div class="stat-lbl">Avg Calories</div>
-        <div class="stat-sub">last 7 days</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val" id="tr-vs-pace">—</div>
-        <div class="stat-lbl">vs Goal Pace</div>
-        <div class="stat-sub" id="tr-pace-sub">last 7d vs −0.65 lbs/wk target</div>
-      </div>
-    </div>
-
-    <!-- Insight sentence -->
-    <div id="tr-insight" style="display:none;margin:0 0 4px;padding:12px 18px;background:var(--card);border-radius:14px;font-size:0.88rem;color:var(--muted);line-height:1.5"></div>
-
-    <!-- Main dual-axis chart -->
-    <div class="card">
-      <h2>Daily Calories &amp; Weight Trend</h2>
-      <div class="chart-wrap"><canvas id="chart-trends" height="220"></canvas></div>
-    </div>
-
-    <!-- Weekly averages table -->
-    <div class="card">
-      <h2>Weekly Averages</h2>
-      <div class="history-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Week of</th>
-              <th style="text-align:right">Avg Cal</th>
-              <th style="text-align:right">Avg Steps</th>
-              <th style="text-align:right">Avg Weight</th>
-              <th style="text-align:right">Weekly Δ</th>
-            </tr>
-          </thead>
-          <tbody id="trends-weekly-body">
-            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Log food and weight to see weekly trends.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- DEXA body composition chart -->
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
-        <h2 style="margin-bottom:0">DEXA Body Composition</h2>
-        <button class="btn-sm" onclick="openDexaForm()" style="background:var(--primary);color:#fff;border:none">+ Add Scan</button>
-      </div>
-      <div class="dexa-stats" id="dexa-stats"></div>
-      <div class="chart-wrap"><canvas id="chart-dexa" height="240"></canvas></div>
-    </div>
-
-    <!-- DEXA scan history table -->
-    <div class="card">
-      <h2>DEXA Scan History</h2>
-      <div class="history-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th style="text-align:right">BF %</th>
-              <th style="text-align:right">Fat (lbs)</th>
-              <th style="text-align:right">Lean (lbs)</th>
-              <th style="text-align:right">Total (lbs)</th>
-              <th style="width:60px"></th>
-            </tr>
-          </thead>
-          <tbody id="dexa-history-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- DEXA add/edit modal -->
-    <div class="dexa-modal-overlay" id="dexa-modal-overlay" onclick="closeDexaForm(event)">
-      <div class="dexa-modal" onclick="event.stopPropagation()">
-        <h2 id="dexa-modal-title" style="margin-top:0">Add DEXA Scan</h2>
-        <div class="dexa-form-grid">
-          <div><label>Date</label><input type="text" id="dexa-f-date" placeholder="YYYY-MM-DD" /></div>
-          <div><label>Body Fat %</label><input type="number" id="dexa-f-bf" step="0.1" min="3" max="60" /></div>
-          <div><label>Fat Tissue (lbs)</label><input type="number" id="dexa-f-fat" step="0.1" min="0" max="200" /></div>
-          <div><label>Lean Tissue (lbs)</label><input type="number" id="dexa-f-lean" step="0.1" min="0" max="300" /></div>
-          <div><label>Total Mass (lbs)</label><input type="number" id="dexa-f-total" step="0.1" min="0" max="500" /></div>
-          <div><label>BMC (lbs, optional)</label><input type="number" id="dexa-f-bmc" step="0.1" min="0" max="30" /></div>
-        </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-          <button class="btn-sm" onclick="closeDexaForm()">Cancel</button>
-          <button class="btn-sm" onclick="saveDexaForm()" style="background:var(--primary);color:#fff;border:none">Save Scan</button>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /panel-trends -->
+  <!-- Trends panel removed 2026-05-01: DEXA moved to Weight tab; calorie/weight
+       trend chart and Weekly Averages were redundant with the Weight tab now. -->
 
 
 </div><!-- /wrap -->
@@ -1959,10 +1897,55 @@ function saveDexaScans(arr) {
 function upsertDexaScan(scan) {
   const arr = getDexaScans().filter(s => s.date !== scan.date);
   arr.push(scan);
-  return saveDexaScans(arr);
+  saveDexaScans(arr);
+  // Phase 4 (2026-05-01): DEXA now syncs to Sheets via the queue.
+  enqueueWrite('setDexa', scan);
+  return arr;
 }
 function deleteDexaScan(date) {
-  return saveDexaScans(getDexaScans().filter(s => s.date !== date));
+  const arr = saveDexaScans(getDexaScans().filter(s => s.date !== date));
+  enqueueWrite('deleteDexa', { date });
+  return arr;
+}
+
+// Pull DEXA from sheet — same shape as other domain pulls. Used by init +
+// syncOnVisibility. Returns the entries array on success, null on failure.
+async function pullDexaFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url + '?type=dexa');
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.entries)) return null;
+    return data.entries;
+  } catch (e) { return null; }
+}
+
+// Reconcile remote DEXA with local. When queue is idle, full overwrite (sheet
+// is source of truth). Otherwise merge — local-only entries kept (queue will
+// flush them).
+//
+// SELF-HEALING FIRST-LOAD CASE: on the very first load post-deploy, the sheet's
+// DEXA tab is empty but local has the 11 seed scans. A naive overwrite would
+// wipe them. So: if remote is empty AND we haven't done the one-time backfill
+// yet, push local to the sheet via the queue and preserve local for now. After
+// that flag is set, future empty pulls are trusted (cross-device deletes propagate).
+function mergeDexaScans(local, remote) {
+  if (!Array.isArray(local)) local = [];
+  if (typeof getQueueStatus === 'function' && getQueueStatus() === 'idle' && Array.isArray(remote)) {
+    const hasBackfilled = !!localStorage.getItem('migration_backfillDexa_v1');
+    if (remote.length === 0 && !hasBackfilled && local.length > 0) {
+      local.forEach(s => { if (s && s.date) enqueueWrite('setDexa', s); });
+      safeSetItem('migration_backfillDexa_v1', '1');
+      return local.slice();
+    }
+    return remote.slice();
+  }
+  if (!Array.isArray(remote)) remote = [];
+  const map = {};
+  local.forEach(s => { if (s && s.date) map[s.date] = s; });
+  remote.forEach(s => { if (s && s.date && !map[s.date]) map[s.date] = s; });
+  return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 const KEY = 'cut_tracker_v2';
@@ -2179,6 +2162,8 @@ function _opToPayload(op, payload) {
     case 'setSteps':              return { action: 'syncSteps', entries: [payload] };
     case 'setRunChallengeForDate':   return { action: 'setRunChallengeForDate',    entry: payload };
     case 'deleteRunChallengeForDate':return { action: 'deleteRunChallengeForDate', date:  payload.date };
+    case 'setDexa':                  return { action: 'setDexa',                   entry: payload };
+    case 'deleteDexa':               return { action: 'deleteDexa',                date:  payload.date };
     default: throw new Error('Unknown queue op: ' + op);
   }
 }
@@ -2535,8 +2520,8 @@ async function saveSettings() {
       saveHabitsData(mergedHabits);
       if (document.getElementById('panel-habits').classList.contains('active')) renderHabits();
     }
-    // Re-render Trends if it's the active tab
-    if (document.getElementById('panel-trends').classList.contains('active')) renderTrends();
+    // Trends tab removed 2026-05-01; line kept null-safe in case anything still references it.
+    if (document.getElementById('panel-trends')?.classList.contains('active')) renderTrends();
     updateFoodSyncUI();
     updateHabitSyncUI();
   }
@@ -2544,7 +2529,7 @@ async function saveSettings() {
 
 async function forcePull() {
   const [remote, habitsRemote] = await Promise.all([pullFromSheets(), pullHabitsFromSheets()]);
-  if (remote) { const local=load(); local.entries=mergeEntries(local.entries,remote); save(local); renderWeight(); if (document.getElementById('panel-trends').classList.contains('active')) renderTrends(); }
+  if (remote) { const local=load(); local.entries=mergeEntries(local.entries,remote); save(local); renderWeight(); if (document.getElementById('panel-trends')?.classList.contains('active')) renderTrends(); }
   if (habitsRemote && habitsRemote.length) { const lh=getHabitsData(); saveHabitsData(mergeHabitsData(lh,habitsRemote)); if(document.getElementById('panel-habits').classList.contains('active')) renderHabits(); }
   showToast('✓ Pulled & merged from Google Sheets');
 }
@@ -2698,6 +2683,8 @@ function renderWeight() {
 
   drawWeightChart(data);
   renderHistory(data);
+  // DEXA moved to Weight tab 2026-05-01
+  if (typeof renderDexaSection === 'function') renderDexaSection();
 }
 
 function showForm() {
@@ -3168,9 +3155,9 @@ async function syncOnVisibility(forceEvenIfHidden) {
   }
   updateSyncUI('yellow', 'Re-syncing...');
   try {
-    // Pull all 5 domains so steps + run challenge stay in sync across devices too.
-    const [remote, foodRemote, habitsRemote, stepsRemote] = await Promise.all([
-      pullFromSheets(), pullFoodFromSheets(), pullHabitsFromSheets(), pullStepsFromSheets(), pullRCFromSheets()
+    // Pull all 6 domains so everything stays in sync across devices.
+    const [remote, foodRemote, habitsRemote, stepsRemote, _rc, dexaRemote] = await Promise.all([
+      pullFromSheets(), pullFoodFromSheets(), pullHabitsFromSheets(), pullStepsFromSheets(), pullRCFromSheets(), pullDexaFromSheets()
     ]);
     if (remote) {
       const local = load();
@@ -3193,6 +3180,11 @@ async function syncOnVisibility(forceEvenIfHidden) {
       const localSteps = getStepsData();
       const mergedSteps = mergeStepsData(localSteps, stepsRemote);
       if (JSON.stringify(mergedSteps) !== JSON.stringify(localSteps)) saveStepsData(mergedSteps);
+    }
+    if (dexaRemote) {
+      const localDexa = getDexaScans();
+      const mergedDexa = mergeDexaScans(localDexa, dexaRemote);
+      if (JSON.stringify(mergedDexa) !== JSON.stringify(localDexa)) saveDexaScans(mergedDexa);
     }
     updateSyncUI('green', 'Synced just now');
     // Re-render visible tab — and run challenge has its own panel.
@@ -3320,10 +3312,10 @@ function ensureTodayMealPlan() {
   const sheetsUrl = getSheetsUrl();
   if (sheetsUrl) {
     updateSyncUI('yellow','Connecting to Google Sheets...');
-    // Pull weight, food entries, and food library in parallel
-    const [remote, foodRemote, libraryData, habitsRemote, stepsRemote] = await Promise.all([
+    // Pull weight, food entries, food library, habits, steps, run challenge, and DEXA in parallel
+    const [remote, foodRemote, libraryData, habitsRemote, stepsRemote, _rc, dexaRemote] = await Promise.all([
       pullFromSheets(), pullFoodFromSheets(), pullFoodLibraryFromSheets(), pullHabitsFromSheets(), pullStepsFromSheets(),
-      pullRCFromSheets()
+      pullRCFromSheets(), pullDexaFromSheets()
     ]);
     if (remote) {
       const local = load();
@@ -3345,6 +3337,11 @@ function ensureTodayMealPlan() {
       const mergedSteps = mergeStepsData(localSteps, stepsRemote);
       if (JSON.stringify(mergedSteps) !== JSON.stringify(localSteps)) saveStepsData(mergedSteps);
     }
+    if (dexaRemote) {
+      const localDexa = getDexaScans();
+      const mergedDexa = mergeDexaScans(localDexa, dexaRemote);
+      if (JSON.stringify(mergedDexa) !== JSON.stringify(localDexa)) saveDexaScans(mergedDexa);
+    }
     if (libraryData && Array.isArray(libraryData.foods) && libraryData.foods.length) {
       FOOD_DB = libraryData.foods;
       if (Array.isArray(libraryData.planTemplate) && libraryData.planTemplate.length) {
@@ -3357,8 +3354,8 @@ function ensureTodayMealPlan() {
     }
     // After Sheets pull, update backup status (meal plan was already ensured above)
     updateBackupStatus();
-    // Re-render trends after all syncs to pick up fresh weight/food/steps data
-    if (document.getElementById('panel-trends').classList.contains('active')) renderTrends();
+    // Trends tab removed 2026-05-01; null-safe in case panel ever returns.
+    if (document.getElementById('panel-trends')?.classList.contains('active')) renderTrends();
 
     // Phase 3 backfill — push any local-only entries to the sheet (one-time, idempotent).
     // Runs AFTER pull-merge so we have remote sets to diff against. Don't await:
@@ -5374,14 +5371,17 @@ function mergeHabitsData(local, remoteEntries) {
 let trendsRange = 0; // 0 = all, 7/30/90 = last N days
 let trendsChart = null;
 
-function setTrendsRange(n) {
-  trendsRange = n;
-  document.querySelectorAll('.tr-range-btn').forEach(b => b.classList.remove('tr-range-active'));
-  document.getElementById('tr-' + (n === 0 ? 'all' : n)).classList.add('tr-range-active');
-  renderTrends();
-}
+// Trends tab removed 2026-05-01. setTrendsRange is now a no-op (button is gone).
+function setTrendsRange(_n) { /* removed */ }
 
 function renderTrends() {
+  // Trends panel was removed 2026-05-01. DEXA is now rendered from renderWeight().
+  // Returning early keeps the rest of the (now-dead) trends code from crashing on
+  // missing DOM elements (tr-avg-cal, chart-trends, trends-weekly-body, etc.).
+  if (typeof renderDexaSection === 'function') renderDexaSection();
+  return;
+  // Original renderTrends body kept below as unreachable dead code in case
+  // Trends ever needs to come back. The early `return` above prevents execution.
   // DEXA section is independent of daily data — render up front
   renderDexaSection();
 
